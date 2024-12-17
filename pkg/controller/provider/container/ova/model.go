@@ -11,12 +11,6 @@ import (
 	"github.com/konveyor/forklift-controller/pkg/lib/logging"
 )
 
-// Default Storage
-const (
-	DefaultStorageID   = "default"
-	DefaultStorageName = "Default"
-)
-
 // All adapters.
 var adapterList []Adapter
 

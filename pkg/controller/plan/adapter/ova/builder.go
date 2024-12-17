@@ -63,11 +63,6 @@ const (
 	Unknown = "unknown"
 )
 
-// Default Storage
-const (
-	DefaultStorageID = "default"
-)
-
 // Regex which matches the snapshot identifier suffix of a
 // OVA disk backing file.
 var backingFilePattern = regexp.MustCompile(`-\d\d\d\d\d\d.vmdk`)
