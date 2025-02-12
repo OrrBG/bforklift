@@ -15,11 +15,8 @@ import (
 	"github.com/konveyor/forklift-controller/pkg/lib/logging"
 	core "k8s.io/api/core/v1"
 	storage "k8s.io/api/storage/v1"
-<<<<<<< HEAD
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
-=======
->>>>>>> dcfb7c6b (inventory: use k8s client to fetch storageclass info)
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	cnv "kubevirt.io/api/core/v1"
