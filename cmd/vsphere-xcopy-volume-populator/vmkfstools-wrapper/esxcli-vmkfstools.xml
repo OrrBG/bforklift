@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<plugin xmlns="http://www.vmware.com/Products/ESX/5.0/esxcli/">
+   <version>1.0.0</version>
+
+   <namespaces>
+      <namespace path="vmkfstools">
+         <description>vmkfstools operations</description>
+      </namespace>
+   </namespaces>
+
+   <commands>
+      <!-- esxcli vmkfstools list -->
+      <command path="vmkfstools.clone">
+         <description>clone vmdk to rdm</description>
+         <input-spec>
+            <parameter name="source-vmdk" type="string" required="true" shortname="s">
+            <description>Full path to the source vmdk. e.g /vmfs/volumes/$datastore/$vmname/$vmname.vmdk</description>
+            </parameter>
+            <parameter name="target-lun" type="string" required="true" shortname="t">
+            <description>Target rdm to copy to. e.g /vmfs/devices/disks/naa.$8-digits-vendor$24-disk-serial-number-in-hex</description>
+            </parameter>
+         </input-spec>
+         <output-spec>
+             <list type="string" />
+         </output-spec>
+         <format-parameters>
+            <formatter>simple</formatter>
+         </format-parameters>
+         <execute>/bin/vmkfstools -i $val{source-vmdk} -d rdm:$val{target-lun} $val{source-vmdk}-rdmdisk.vmdk </execute>
+      </command>
+   </commands>
+</plugin>
