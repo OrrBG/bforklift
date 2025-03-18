@@ -208,7 +208,7 @@ test-copy-using-cli-3par: build
 		--source-vmdk="[eco-iscsi-ds1] boris01/boris01.vmdk" \
 	    --target-pvc=test1\
 		--target-namespace=default \
-		--storage-vendor=par3 \
+		--storage-vendor=primera3par \
 		--secret-name=populator-secret \
 		--kubeconfig=$$KUBECONFIG
 
