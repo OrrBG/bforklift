@@ -292,10 +292,11 @@ func (p *Primera3ParClientWsImpl) EnsureLunMapped(initiatorGroup string, targetL
 	fmt.Println(">>>>3.5", req)
 	resp, err := p.doRequest(req, "ensureLunMapping")
 	if err != nil {
+		fmt.Println(">>>> 3.5.1", err)
 		return populator.LUN{}, fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
-
+	fmt.Println(">>>>3.5.2", resp)
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return populator.LUN{}, fmt.Errorf("failed to map LUN: status %d, resp: %v", resp.StatusCode, resp)
 	}
@@ -524,7 +525,7 @@ func (p *Primera3ParClientWsImpl) doRequest(req *http.Request, reqDescription st
 		return nil, fmt.Errorf("failed for %s: %w", reqDescription, err)
 	}
 
-	fmt.Println(">>>>>>>5.6")
+	fmt.Println(">>>>>>>5.6", resp)
 	return resp, nil
 }
 
