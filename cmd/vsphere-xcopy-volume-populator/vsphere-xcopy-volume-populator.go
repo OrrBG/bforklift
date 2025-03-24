@@ -153,6 +153,7 @@ func newKubeClient(masterURL string, kubeconfig string) (*kubernetes.Clientset, 
 // "prime-{ORIG_PVC_NAME}" PVC because when the controller pod is handling it, the pvc prime should be bounded
 // to popoulator pod. However it is not guarnteed to be bounded at that stage and it may take time
 func getVolumeHandle(kubeClient *kubernetes.Clientset, targetNamespace, namespace, targetPVC string) (string, error) {
+	fmt.Println(">>>>>>>>>>>>0.1", targetPVC)
 	pvc, err := kubeClient.CoreV1().PersistentVolumeClaims(targetNamespace).Get(context.Background(), targetPVC, metav1.GetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch the the target persistent volume claim %q %w", pvc.Name, err)
