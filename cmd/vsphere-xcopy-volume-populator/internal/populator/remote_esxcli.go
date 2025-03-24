@@ -65,19 +65,24 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 		return fmt.Errorf("failed to add the ESX IQN %s to the initiator group %w", esxIQN, err)
 	}
 
+	fmt.Println(">>>>>> volumeHandle", volumeHandle)
 	lun, err := p.StorageApi.ResolveVolumeHandleToLUN(volumeHandle)
 	if err != nil {
 		return err
 	}
+	fmt.Println(">>>>>> lun", lun)
 	originalInitiatorGroups, err := p.StorageApi.CurrentMappedGroups(lun)
 	if err != nil {
 		return fmt.Errorf("failed to fetch the current initiator groups of the lun %s: %w", lun.Name, err)
 	}
 
+	fmt.Println(">>>>>>originalInitiatorGroups ", originalInitiatorGroups)
 	lun, err = p.StorageApi.Map(xcopyInitiatorGroup, lun)
 	if err != nil {
 		return fmt.Errorf("failed to map lun %s to initiator group %s: %w", lun, xcopyInitiatorGroup, err)
 	}
+
+	fmt.Println(">>>>>>map done", lun)
 	defer func() {
 		if !slices.Contains(originalInitiatorGroups, xcopyInitiatorGroup) {
 			p.StorageApi.UnMap(xcopyInitiatorGroup, lun)
@@ -88,6 +93,7 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 	targetLUN := fmt.Sprintf("/vmfs/devices/disks/%s", esxNaa)
 	klog.Infof("resolved lun with IQN %s to lun %s", lun.IQN, targetLUN)
 
+	fmt.Println(">>>>>>targetLun ")
 	_, err = p.VSphereClient.RunEsxCommand(context.Background(), host, []string{"storage", "core", "adapter", "rescan", "-a", "1"})
 	if err != nil {
 		return err

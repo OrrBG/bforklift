@@ -212,6 +212,17 @@ test-copy-using-cli-3par: build
 		--secret-name=populator-secret \
 		--kubeconfig=$$KUBECONFIG
 
+test-copy-using-cli-primera: build
+	bin/vsphere-xcopy-volume-populator \
+		--source-vmdk="[primera-iscsi-vmfs1] fedora/fedora.vmdk" \
+	    --target-pvc=boris-block\
+		--target-namespace=default \
+		--storage-vendor=primera3par \
+		--secret-name=populator-secret \
+		--kubeconfig=$$KUBECONFIG
+
+
+
 .PHONY: vmkfstools-wrapper
 vmkfstools-wrapper:
 	vmkfstools-wrapper/create-vib.sh

@@ -83,15 +83,18 @@ func NewPrimera3ParClientWsImpl(storageHostname, storageUsername, storagePasswor
 }
 
 func (p *Primera3ParClientWsImpl) EnsureHostWithIqn(iqn string) (string, error) {
+	fmt.Println(">>>>>>>1", iqn)
 	hostName, err := p.getHostByIQN(iqn)
 	if err != nil {
 		return "", fmt.Errorf("failed to get host by iqn: %w", err)
 	}
 	if hostName != "" {
+		fmt.Println(">>>>>>>2", hostName)
 		return hostName, nil
 	}
 	hostName = uuid.New().String()
 	hostName = hostName[:10]
+	fmt.Println(">>>>>>>>>>>>>>>>>3", hostName)
 	err = p.createHost(hostName, iqn)
 	if err != nil {
 		return "", err
@@ -103,6 +106,7 @@ func (p *Primera3ParClientWsImpl) EnsureHostWithIqn(iqn string) (string, error) 
 func (p *Primera3ParClientWsImpl) getHostByIQN(iqn string) (string, error) {
 	url := fmt.Sprintf("%s/api/v1/hosts", p.BaseURL)
 
+	fmt.Println(">>>>>>1.0", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
@@ -113,10 +117,11 @@ func (p *Primera3ParClientWsImpl) getHostByIQN(iqn string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
+	fmt.Println(">>>>>>1.1", hostData)
 	for _, host := range hostData.Members {
 		for _, existingIQN := range host.ISCSIPaths {
 			if existingIQN.Name == iqn {
+				fmt.Println(">>>>>1.2", host)
 				return host.Name, nil
 			}
 		}
@@ -248,7 +253,9 @@ func (p *Primera3ParClientWsImpl) GetSessionKey() (string, error) {
 func (p *Primera3ParClientWsImpl) EnsureLunMapped(initiatorGroup string, targetLUN populator.LUN) (populator.LUN, error) {
 	targetLUN.IQN = initiatorGroup
 	hostSetName := fmt.Sprintf("set:%s", initiatorGroup)
+	fmt.Println(">>>>3.1", hostSetName)
 	vlun, err := p.GetVLun(targetLUN.Name, hostSetName)
+	fmt.Println(">>>>3.2", targetLUN.Name, hostSetName)
 	if err != nil {
 		return populator.LUN{}, err
 	}
@@ -258,6 +265,7 @@ func (p *Primera3ParClientWsImpl) EnsureLunMapped(initiatorGroup string, targetL
 	}
 
 	lunID, err := p.GetFreeLunID(initiatorGroup)
+	fmt.Println(">>>>3.3", lunID)
 	if err != nil {
 		return populator.LUN{}, err
 	}
@@ -274,12 +282,14 @@ func (p *Primera3ParClientWsImpl) EnsureLunMapped(initiatorGroup string, targetL
 		return populator.LUN{}, fmt.Errorf("failed to encode JSON: %w", err)
 	}
 
+	fmt.Println(">>>>3.4")
 	url := fmt.Sprintf("%s/api/v1/vluns", p.BaseURL)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return populator.LUN{}, fmt.Errorf("failed to create request: %w", err)
 	}
 
+	fmt.Println(">>>>3.5", req)
 	resp, err := p.doRequest(req, "ensureLunMapping")
 	if err != nil {
 		return populator.LUN{}, fmt.Errorf("request failed: %w", err)
@@ -289,6 +299,8 @@ func (p *Primera3ParClientWsImpl) EnsureLunMapped(initiatorGroup string, targetL
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return populator.LUN{}, fmt.Errorf("failed to map LUN: status %d, resp: %v", resp.StatusCode, resp)
 	}
+
+	fmt.Println(">>>>3.6", targetLUN)
 	return targetLUN, nil
 }
 
