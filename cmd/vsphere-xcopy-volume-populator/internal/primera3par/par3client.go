@@ -504,22 +504,27 @@ func (p *Primera3ParClientWsImpl) CurrentMappedGroups(volumeName string) ([]stri
 }
 
 func (p *Primera3ParClientWsImpl) doRequest(req *http.Request, reqDescription string) (*http.Response, error) {
+	fmt.Println(">>>>>>>5.1")
 	_, err := p.GetSessionKey()
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Println(">>>>>>>5.2")
 	p.setReqHeadersWithSessionKey(req)
 
 	resp, err := p.HTTPClient.Do(req)
 	if err != nil {
+		fmt.Println(">>>>>>>5.3")
 		return nil, fmt.Errorf("request failed for %s: %w", reqDescription, err)
 	}
 
+	fmt.Println(">>>>>>>5.4")
 	if resp, err = p.handleUnauthorizedSessionKey(resp, req, err); err != nil {
 		return nil, fmt.Errorf("failed for %s: %w", reqDescription, err)
 	}
 
+	fmt.Println(">>>>>>>5.6")
 	return resp, nil
 }
 
