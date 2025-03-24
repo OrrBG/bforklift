@@ -531,12 +531,14 @@ func (p *Primera3ParClientWsImpl) doRequestUnmarshalResponse(req *http.Request, 
 
 	p.setReqHeadersWithSessionKey(req)
 
+	fmt.Println(">>>>>>4.1")
 	resp, err := p.HTTPClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("request failed for %s: %w", reqDescription, err)
 	}
 	defer resp.Body.Close()
 
+	fmt.Println(">>>>>>4.2")
 	if resp, err = p.handleUnauthorizedSessionKey(resp, req, err); err != nil {
 		return fmt.Errorf("failed for %s: %w", reqDescription, err)
 	}
@@ -545,12 +547,13 @@ func (p *Primera3ParClientWsImpl) doRequestUnmarshalResponse(req *http.Request, 
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("failed for %s: status %d, body: %s", reqDescription, resp.StatusCode, string(body))
 	}
-
+	fmt.Println(">>>>>>4.3")
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read response for %s: %w", reqDescription, err)
 	}
 
+	fmt.Println(">>>>>>4.4")
 	if err := json.Unmarshal(bodyBytes, response); err != nil {
 		return fmt.Errorf("failed to parse JSON for %s: %w", reqDescription, err)
 	}
