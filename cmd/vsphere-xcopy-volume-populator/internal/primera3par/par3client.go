@@ -274,7 +274,7 @@ func (p *Primera3ParClientWsImpl) EnsureLunMapped(initiatorGroup string, targetL
 		"volumeName": targetLUN.Name,
 		"lun":        lunID,
 		"hostname":   hostSetName,
-		"autoLun":    false,
+		"autoLun":    true,
 	}
 
 	jsonBody, err := json.Marshal(requestBody)
