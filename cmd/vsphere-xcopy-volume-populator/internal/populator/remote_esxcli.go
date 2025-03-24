@@ -40,7 +40,8 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 	}
 	klog.Infof("Starting to populate using remote esxcli vmkfstools, source vmdk %s target LUN %s", sourceVMDKFile, volumeHandle)
 	host, err := p.VSphereClient.GetEsxByVm(context.Background(), vmDisk.VMName)
-	klog.Infof("Got ESXI name: %s", host)
+	klog.Infof("Got ESXI host: %s", host)
+	klog.Infof("Got ESXI name: %s", host.Name())
 	if err != nil {
 		return err
 	}
