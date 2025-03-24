@@ -79,6 +79,7 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 	fmt.Println(">>>>>>originalInitiatorGroups ", originalInitiatorGroups)
 	lun, err = p.StorageApi.Map(xcopyInitiatorGroup, lun)
 	if err != nil {
+		fmt.Printf(">>>>>>>>>>>>>>>failed to map the lun %s: %v", lun.Name, err)
 		return fmt.Errorf("failed to map lun %s to initiator group %s: %w", lun, xcopyInitiatorGroup, err)
 	}
 

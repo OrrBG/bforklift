@@ -107,8 +107,15 @@ func main() {
 	progressCh := make(chan int)
 	// channel for quitting with output
 	quitCh := make(chan string)
+	errCh := make(chan error)
 
-	go p.Populate(sourceVMDKFile, volumeHandle, progressCh, quitCh)
+	go func() {
+		errCh <- p.Populate(sourceVMDKFile, volumeHandle, progressCh, quitCh)
+	}()
+
+	if err := <-errCh; err != nil {
+		fmt.Println("Error populating:", err)
+	}
 
 	for {
 		select {
