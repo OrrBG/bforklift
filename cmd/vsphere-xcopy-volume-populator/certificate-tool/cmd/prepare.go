@@ -2,10 +2,16 @@ package cmd
 
 import (
 	"certificate-tool/internal/k8s"
+<<<<<<< HEAD
 	// appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/klog/v2"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+=======
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/klog/v2"
+
+>>>>>>> 9c61b996 (certificate tool phase 1)
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"

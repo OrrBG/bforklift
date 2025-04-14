@@ -5,6 +5,7 @@ ENV_FILE ?= assets/config/.env
 -include $(ENV_FILE)
 GOPATH ?= `go env GOPATH`
 GOBIN ?= $(GOPATH)/bin
+<<<<<<< HEAD
 # By default use the kubectl installed by the
 # 'kubectl' target
 DEFAULT_KUBECTL = $(GOBIN)/kubectl
@@ -12,6 +13,17 @@ KUBECTL ?= /usr/bin/kubectl
 
 
 TEST_NAMESPACE = $(shell yq e '.test-namespace' $(CONFIG_FILE))
+=======
+SHELL := /usr/bin/env bash
+# By default use the kubectl installed by the
+# 'kubectl' target
+DEFAULT_KUBECTL = $(GOBIN)/kubectl
+KUBECTL ?= $(DEFAULT_KUBECTL)
+
+
+TEST_NAMESPACE = $(shell yq e '.test-namespace' $(CONFIG_FILE))
+POD_NAMESPACE = $(shell yq e '.pod-namespace' $(CONFIG_FILE))
+>>>>>>> 9c61b996 (certificate tool phase 1)
 STORAGE_VENDOR   = $(shell yq e '.storage-vendor' $(CONFIG_FILE))
 KUBECONFIG       = $(shell yq e '.kubeconfig' $(CONFIG_FILE))
 TEST_IMAGE_LABEL = $(shell yq e '.test-image-label' $(CONFIG_FILE))
@@ -19,7 +31,10 @@ TEST_LABELS      = $(shell yq e '.test-labels' $(CONFIG_FILE))
 TEST_POPULATOR_IMAGE = $(shell yq e '.test-populator-image' $(CONFIG_FILE))
 CONTROLLER_PATH  = $(shell yq e '.controller-path' $(CONFIG_FILE))
 STORAGE_CLASS_NAME  = $(shell yq e '.storage-class-name' $(CONFIG_FILE))
+<<<<<<< HEAD
 SECRET_NAME =  $(shell yq e '.secret-name' $(CONFIG_FILE))
+=======
+>>>>>>> 9c61b996 (certificate tool phase 1)
 
 REQUIRED_VARS := STORAGE_USER STORAGE_PASSWORD STORAGE_URL VSPHERE_USER VSPHERE_PASSWORD VSPHERE_URL STORAGE_CLASS_NAME
 
@@ -66,6 +81,10 @@ prepare: check-tools build ## Run certificate-tool create-env subcommand.
 			--test-labels           "$(TEST_LABELS)" \
 			--test-populator-image  "$(TEST_POPULATOR_IMAGE)" \
 			--controller-path       "$(CONTROLLER_PATH)" \
+<<<<<<< HEAD
+=======
+			--pod-namespace         "$(POD_NAMESPACE)" \
+>>>>>>> 9c61b996 (certificate tool phase 1)
 			--test-image-label      "$(TEST_IMAGE_LABEL)" \
 			--storage-user          "$(STORAGE_USER)" \
 			--storage-password      "$(STORAGE_PASSWORD)" \
