@@ -1,0 +1,20 @@
+## test values
+### cluster config
+test-namespace: vsphere-populator-test
+kubeconfig: "/home/bodnopoz/work/kubeconfig3par.yaml"
+secret-name: populator-secret
+controller-path: assets/manifests/xcopy-setup/controller.yaml
+test-labels: vsphere-populator
+### images
+test-image-label:  devel
+test-populator-image: quay.io/kubev2v/vsphere-xcopy-volume-populator
+### storage
+storage-vendor: ####
+storage-password: #####
+storage-user: ####
+storage-url: ###
+### vsphere
+vsphere-password: #####
+vsphere-user: ####
+vsphere-url: ####
+storage-class-name: ####
