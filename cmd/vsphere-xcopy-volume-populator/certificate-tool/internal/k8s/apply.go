@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+<<<<<<< HEAD
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+=======
+>>>>>>> 9c61b996 (certificate tool phase 1)
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"net/http"
 	"os"
@@ -121,6 +124,7 @@ func ApplyResource[T any](
 	}
 	return nil
 }
+<<<<<<< HEAD
 
 func ApplyPVCFromTemplate(clientset *kubernetes.Clientset, namespace, pvcName, size, storageClassName, yamlPath string) error {
 	data, err := ioutil.ReadFile(yamlPath)
@@ -137,3 +141,5 @@ func ApplyPVCFromTemplate(clientset *kubernetes.Clientset, namespace, pvcName, s
 	pvc.Spec.StorageClassName = &storageClassName
 	return EnsurePersistentVolumeClaim(clientset, namespace, &pvc)
 }
+=======
+>>>>>>> 9c61b996 (certificate tool phase 1)

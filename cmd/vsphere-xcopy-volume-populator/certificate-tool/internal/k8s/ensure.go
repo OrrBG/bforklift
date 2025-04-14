@@ -1,7 +1,10 @@
 package k8s
 
 import (
+<<<<<<< HEAD
 	"certificate-tool/internal/utils"
+=======
+>>>>>>> 9c61b996 (certificate tool phase 1)
 	"context"
 	"fmt"
 
@@ -172,6 +175,7 @@ func EnsurePersistentVolumeClaim(clientset *kubernetes.Clientset, namespace stri
 	klog.Infof("PVC %q already exists", existing.Name)
 	return nil
 }
+<<<<<<< HEAD
 
 //func ensurePVC(ctx context.Context, clientset *kubernetes.Clientset, namespace, pvcName, yamlPath string) error {
 //	data, err := ioutil.ReadFile(yamlPath)
@@ -250,3 +254,5 @@ func EnsurePopulatorPod(ctx context.Context, clientset *kubernetes.Clientset, na
 	klog.Infof("Populator pod %s already exists", podName)
 	return nil
 }
+=======
+>>>>>>> 9c61b996 (certificate tool phase 1)

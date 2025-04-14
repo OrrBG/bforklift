@@ -6,6 +6,17 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+<<<<<<< HEAD
+=======
+  dataSource:
+    apiGroup: forklift.konveyor.io
+    kind: VSphereXcopyVolumePopulator
+    name: test-xcopy
+  dataSourceRef:
+    apiGroup: forklift.konveyor.io
+    kind: VSphereXcopyVolumePopulator
+    name: test-xcopy
+>>>>>>> 9c61b996 (certificate tool phase 1)
   resources:
     requests:
       storage: 10Gi

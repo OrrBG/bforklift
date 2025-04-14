@@ -2,6 +2,7 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: xcopy-storage-class
+<<<<<<< HEAD
 provisioner: csi.trident.netapp.io
 parameters:
   volumeMode: Block
@@ -19,8 +20,32 @@ parameters:
   accessProtocol: iscsi
 
   description: "iscsi RWX Block volume by Ontap CSI Driver"
+=======
+provisioner: csi.hpe.com
+parameters:
+  volumeMode: Block
+  allowMultiplePods: 'true'
+  csi.storage.k8s.io/controller-expand-secret-name: hpe-3par-backend
+  csi.storage.k8s.io/controller-expand-secret-namespace: kube-system
+  csi.storage.k8s.io/controller-publish-secret-name: hpe-3par-backend
+  csi.storage.k8s.io/controller-publish-secret-namespace: kube-system
+  csi.storage.k8s.io/node-publish-secret-name: hpe-3par-backend
+  csi.storage.k8s.io/node-publish-secret-namespace: kube-system
+  csi.storage.k8s.io/node-stage-secret-name: hpe-3par-backend
+  csi.storage.k8s.io/node-stage-secret-namespace: kube-system
+  csi.storage.k8s.io/provisioner-secret-name: hpe-3par-backend
+  csi.storage.k8s.io/provisioner-secret-namespace: kube-system
+  accessProtocol: iscsi
+
+  description: "iscsi RWX Block volume by HPE CSI Driver"
+>>>>>>> 9c61b996 (certificate tool phase 1)
   hostSeesVLUN: 'true'
 
 reclaimPolicy: Delete
 allowVolumeExpansion: true
+<<<<<<< HEAD
 volumeBindingMode: Immediate
+=======
+volumeBindingMode: Immediate
+
+>>>>>>> 9c61b996 (certificate tool phase 1)

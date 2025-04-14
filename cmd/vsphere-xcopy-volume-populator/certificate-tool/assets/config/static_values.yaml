@@ -1,11 +1,18 @@
 ## test values
 ### cluster config
+<<<<<<< HEAD
 test-namespace: vsphere-populator-test
 kubeconfig: "/home/bodnopoz/work/kubeconfig3par.yaml"
+=======
+pod-namespace: pop
+test-namespace: vsphere-populator-test
+kubeconfig: "/home/amit/.kube/config"
+>>>>>>> 9c61b996 (certificate tool phase 1)
 secret-name: populator-secret
 controller-path: assets/manifests/xcopy-setup/controller.yaml
 test-labels: vsphere-populator
 ### images
+<<<<<<< HEAD
 test-image-label:  devel
 test-populator-image: quay.io/bodnopoz/vsphere-xcopy-volume-populator:devel
 ### storage
@@ -18,3 +25,10 @@ vsphere-password: '!*T8!n*JSk3S'
 vsphere-user: rgolan@ecosystem.content.vsphere
 vsphere-url: eco-vcenter-server.lab.eng.tlv2.redhat.com
 storage-class-name: hpe-3par-isci-block-rwx
+=======
+test-image-label:  0.47
+test-populator-image: quay.io/amitos/vsphere-xcopy-volume-populator
+### storage
+storage-vendor: primera3par
+storage-class-name: xcopy-storage-class
+>>>>>>> 9c61b996 (certificate tool phase 1)
