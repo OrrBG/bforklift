@@ -55,3 +55,30 @@ func ParseVmdkPath(vmdkPath string) (VMDisk, error) {
 	vmdk := pathParts[1]
 	return VMDisk{VMName: vmname, Datacenter: datastore, VmdkFile: vmdk}, nil
 }
+
+type StorageIdentifier struct {
+	IDType  string
+	IDValue map[string]string
+}
+
+const (
+	IDTypeIQN = "iqn"
+	IDTypeWWN = "wwn"
+	IDTypeFC  = "fc"
+)
+
+func (s StorageIdentifier) IsIqn() bool {
+	return s.IDType == IDTypeIQN
+}
+
+func (s StorageIdentifier) IQN() string {
+	return s.IDValue[IDTypeIQN]
+}
+
+func (s StorageIdentifier) WWN() string {
+	return s.IDValue[IDTypeWWN]
+}
+
+func (s StorageIdentifier) IsFC() bool {
+	return s.IDType == IDTypeFC
+}

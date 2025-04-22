@@ -56,18 +56,18 @@ func (mr *MockStorageApiMockRecorder) CurrentMappedGroups(targetLUN, context any
 }
 
 // EnsureClonnerIgroup mocks base method.
-func (m *MockStorageApi) EnsureClonnerIgroup(initiatorGroup, clonnerIqn string) (populator.MappingContext, error) {
+func (m *MockStorageApi) EnsureClonnerIgroup(initiatorGroup string, storageId populator.StorageIdentifier) (populator.MappingContext, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EnsureClonnerIgroup", initiatorGroup, clonnerIqn)
+	ret := m.ctrl.Call(m, "EnsureClonnerIgroup", initiatorGroup, storageId)
 	ret0, _ := ret[0].(populator.MappingContext)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // EnsureClonnerIgroup indicates an expected call of EnsureClonnerIgroup.
-func (mr *MockStorageApiMockRecorder) EnsureClonnerIgroup(initiatorGroup, clonnerIqn any) *gomock.Call {
+func (mr *MockStorageApiMockRecorder) EnsureClonnerIgroup(initiatorGroup, storageId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureClonnerIgroup", reflect.TypeOf((*MockStorageApi)(nil).EnsureClonnerIgroup), initiatorGroup, clonnerIqn)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureClonnerIgroup", reflect.TypeOf((*MockStorageApi)(nil).EnsureClonnerIgroup), initiatorGroup, storageId)
 }
 
 // Map mocks base method.

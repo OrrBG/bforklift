@@ -70,7 +70,8 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 		klog.Infof("iSCSI adapter IQN %s", esxIQN)
 	}
 
-	mappingContext, err := p.StorageApi.EnsureClonnerIgroup(xcopyInitiatorGroup, esxIQN)
+	mappingContext, err := p.StorageApi.EnsureClonnerIgroup(xcopyInitiatorGroup, StorageIdentifier{"iqn", map[string]string{"iqn": esxIQN}})
+
 	if err != nil {
 		return fmt.Errorf("failed to add the ESX IQN %s to the initiator group %w", esxIQN, err)
 	}
