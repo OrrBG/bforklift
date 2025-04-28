@@ -45,14 +45,14 @@ test-copy-using-cli: build
 		--owner-uid=test-cli \
 		--kubeconfig=$$KUBECONFIG
 
-test-copy-using-cli-3par: build
-	bin/vsphere-xcopy-volume-populator \
-		--source-vmdk="[eco-iscsi-ds1] boris01/boris01.vmdk" \
-	    --target-pvc=test1\
-		--target-namespace=default \
-		--storage-vendor=primera3par \
-		--secret-name=populator-secret \
-		--kubeconfig=$$KUBECONFIG
+#test-copy-using-cli-3par: build
+#	bin/vsphere-xcopy-volume-populator \
+#		--source-vmdk="[eco-iscsi-ds1] boris01/boris01.vmdk" \
+#	    --target-pvc=test1\
+#		--target-namespace=default \
+#		--storage-vendor=primera3par \
+#		--secret-name=populator-secret \
+#		--kubeconfig=$$KUBECONFIG
 
 test-copy-using-cli-primera: build
 	bin/vsphere-xcopy-volume-populator \
