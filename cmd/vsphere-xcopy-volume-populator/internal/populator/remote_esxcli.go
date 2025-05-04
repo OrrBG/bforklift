@@ -107,11 +107,6 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 		return err
 	}
 
-	lun, err = p.StorageApi.Map(xcopyInitiatorGroup, lun, mappingContext)
-	if err != nil {
-		return fmt.Errorf("failed to map lun %s to initiator group %s: %w", lun, xcopyInitiatorGroup, err)
-	}
-
 	originalInitiatorGroups, err := p.StorageApi.CurrentMappedGroups(lun, nil)
 	if err != nil {
 		return fmt.Errorf("failed to fetch the current initiator groups of the lun %s: %w", lun.Name, err)
@@ -123,6 +118,12 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 			p.StorageApi.UnMap(xcopyInitiatorGroup, lun, mappingContext)
 		}
 	}()
+
+	lun, err = p.StorageApi.Map(xcopyInitiatorGroup, lun, mappingContext)
+	if err != nil {
+		return fmt.Errorf("failed to map lun %s to initiator group %s: %w", lun, xcopyInitiatorGroup, err)
+	}
+
 	esxNaa := fmt.Sprintf("naa.%s", lun.NAA)
 
 	targetLUN := fmt.Sprintf("/vmfs/devices/disks/%s", esxNaa)

@@ -92,7 +92,7 @@ func NewPrimera3ParClientWsImpl(storageHostname, storageUsername, storagePasswor
 func (p *Primera3ParClientWsImpl) EnsureHostsWithIds(adapterIds []string) ([]string, error) {
 	hostnames := make([]string, len(adapterIds))
 	for _, adapterId := range adapterIds {
-		hostName, err := p.getHostByIQN(adapterId)
+		hostName, err := p.getHostByAdapterId(adapterId)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get host by iqn: %w", err)
 		}
@@ -129,7 +129,7 @@ func cleanHostnames(hosts []string) []string {
 	return out
 }
 
-func (p *Primera3ParClientWsImpl) getHostByIQN(id string) (string, error) {
+func (p *Primera3ParClientWsImpl) getHostByAdapterId(id string) (string, error) {
 	var rawFilter string
 	if strings.HasPrefix(id, "fc.") {
 		parts := strings.SplitN(strings.TrimPrefix(id, "fc."), ":", 2)
@@ -152,7 +152,7 @@ func (p *Primera3ParClientWsImpl) getHostByIQN(id string) (string, error) {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 	var respData HostsResponse
-	if err := p.doRequestUnmarshalResponse(req, "getHostByIQN", &respData); err != nil {
+	if err := p.doRequestUnmarshalResponse(req, "getHostByAdapterId", &respData); err != nil {
 		return "", err
 	}
 
