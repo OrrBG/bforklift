@@ -40,7 +40,7 @@ test-copy-using-cli: build
 		--source-vmdk="[eco-iscsi-ds2] vm-1/vm-1.vmdk" \
 		--owner-name=test-cli \
 		--target-namespace=default \
-		--storage-vendor=ontap \
+		--storage-vendor-product=ontap \
 		--secret-name=populator-secret \
 		--owner-uid=test-cli \
 		--kubeconfig=$$KUBECONFIG
