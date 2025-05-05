@@ -57,6 +57,7 @@ const (
 // Bus types
 const (
 	Virtio = "virtio"
+	E1000e = "e1000e"
 )
 
 // Input types
