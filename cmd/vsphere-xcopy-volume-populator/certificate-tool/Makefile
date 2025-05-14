@@ -6,6 +6,7 @@ ENV_FILE ?= assets/config/.env
 GOPATH ?= `go env GOPATH`
 GOBIN ?= $(GOPATH)/bin
 <<<<<<< HEAD
+<<<<<<< HEAD
 # By default use the kubectl installed by the
 # 'kubectl' target
 DEFAULT_KUBECTL = $(GOBIN)/kubectl
@@ -15,10 +16,12 @@ KUBECTL ?= /usr/bin/kubectl
 TEST_NAMESPACE = $(shell yq e '.test-namespace' $(CONFIG_FILE))
 =======
 SHELL := /usr/bin/env bash
+=======
+>>>>>>> 85c76a6f (changes by Orr)
 # By default use the kubectl installed by the
 # 'kubectl' target
 DEFAULT_KUBECTL = $(GOBIN)/kubectl
-KUBECTL ?= $(DEFAULT_KUBECTL)
+KUBECTL ?= /usr/bin/kubectl
 
 
 TEST_NAMESPACE = $(shell yq e '.test-namespace' $(CONFIG_FILE))
@@ -32,9 +35,13 @@ TEST_POPULATOR_IMAGE = $(shell yq e '.test-populator-image' $(CONFIG_FILE))
 CONTROLLER_PATH  = $(shell yq e '.controller-path' $(CONFIG_FILE))
 STORAGE_CLASS_NAME  = $(shell yq e '.storage-class-name' $(CONFIG_FILE))
 <<<<<<< HEAD
+<<<<<<< HEAD
 SECRET_NAME =  $(shell yq e '.secret-name' $(CONFIG_FILE))
 =======
 >>>>>>> 9c61b996 (certificate tool phase 1)
+=======
+SECRET_NAME =  $(shell yq e '.secret-name' $(CONFIG_FILE))
+>>>>>>> 85c76a6f (changes by Orr)
 
 REQUIRED_VARS := STORAGE_USER STORAGE_PASSWORD STORAGE_URL VSPHERE_USER VSPHERE_PASSWORD VSPHERE_URL STORAGE_CLASS_NAME
 
@@ -111,15 +118,30 @@ test-xcopy: build #prepare
 	@./$(BINARY) test-xcopy \
 		--kubeconfig         	$(KUBECONFIG) \
 		--pvc-yaml           	"assets/manifests/xcopy-setup/xcopy-pvc.yaml"\
+<<<<<<< HEAD
 		--storage-vendor-product     	$(STORAGE_VENDOR) \
 		--storage-class-name 	$(STORAGE_CLASS_NAME) \
 		--test-populator-image  $(TEST_POPULATOR_IMAGE) \
 		--plan-yaml-path  "assets/manifests/examples/example-test-plan.yaml"
+=======
+		--populator-yaml     	"assets/manifests/xcopy-setup/populator.yaml" \
+		--vmdk-path          	"[$(DATA_STORE)] $(VM_NAME)/fedora.vmdk"  \
+		--storage-vendor     	$(STORAGE_VENDOR) \
+		--storage-class-name 	$(STORAGE_CLASS_NAME) \
+		--test-populator-image  $(TEST_POPULATOR_IMAGE)
+>>>>>>> 85c76a6f (changes by Orr)
 
 
 all: create-vm test-xcopy ## Run all steps in sequence.
 
 clean: ## Clean built artifacts.
 	@rm -f $(BINARY)
+<<<<<<< HEAD
 	@#$(KUBECTL) delete namespace $(POD_NAMESPACE)
+=======
+	@$(KUBECTL) delete vspherexcopyvolumepopulators.forklift.konveyor.io -n $(POD_NAMESPACE) test-xcopy
+	@$(KUBECTL) delete pods --all -n $(POD_NAMESPACE)
+	@$(KUBECTL) patch pvc xcopy-pvc -n $(POD_NAMESPACE) -p '{"metadata":{"finalizers":[]}}' --type=merge
+	@$(KUBECTL) delete pvc --all -n $(POD_NAMESPACE)
+>>>>>>> 85c76a6f (changes by Orr)
 
