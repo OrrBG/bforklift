@@ -3,6 +3,7 @@ kind: StorageClass
 metadata:
   name: xcopy-storage-class
 <<<<<<< HEAD
+<<<<<<< HEAD
 provisioner: csi.trident.netapp.io
 parameters:
   volumeMode: Block
@@ -22,30 +23,41 @@ parameters:
   description: "iscsi RWX Block volume by Ontap CSI Driver"
 =======
 provisioner: csi.hpe.com
+=======
+provisioner: csi.trident.netapp.io
+>>>>>>> 85c76a6f (changes by Orr)
 parameters:
   volumeMode: Block
   allowMultiplePods: 'true'
-  csi.storage.k8s.io/controller-expand-secret-name: hpe-3par-backend
-  csi.storage.k8s.io/controller-expand-secret-namespace: kube-system
-  csi.storage.k8s.io/controller-publish-secret-name: hpe-3par-backend
-  csi.storage.k8s.io/controller-publish-secret-namespace: kube-system
-  csi.storage.k8s.io/node-publish-secret-name: hpe-3par-backend
-  csi.storage.k8s.io/node-publish-secret-namespace: kube-system
-  csi.storage.k8s.io/node-stage-secret-name: hpe-3par-backend
-  csi.storage.k8s.io/node-stage-secret-namespace: kube-system
-  csi.storage.k8s.io/provisioner-secret-name: hpe-3par-backend
-  csi.storage.k8s.io/provisioner-secret-namespace: kube-system
+  csi.storage.k8s.io/controller-expand-secret-name: rhosqe-netapp-c250-secret
+  csi.storage.k8s.io/controller-expand-secret-namespace: default
+  csi.storage.k8s.io/controller-publish-secret-name: rhosqe-netapp-c250-secret
+  csi.storage.k8s.io/controller-publish-secret-namespace: default
+  csi.storage.k8s.io/node-publish-secret-name: rhosqe-netapp-c250-secret
+  csi.storage.k8s.io/node-publish-secret-namespace: default
+  csi.storage.k8s.io/node-stage-secret-name: rhosqe-netapp-c250-secret
+  csi.storage.k8s.io/node-stage-secret-namespace: default
+  csi.storage.k8s.io/provisioner-secret-name: rhosqe-netapp-c250-secret
+  csi.storage.k8s.io/provisioner-secret-namespace: default
   accessProtocol: iscsi
 
+<<<<<<< HEAD
   description: "iscsi RWX Block volume by HPE CSI Driver"
 >>>>>>> 9c61b996 (certificate tool phase 1)
+=======
+  description: "iscsi RWX Block volume by Ontap CSI Driver"
+>>>>>>> 85c76a6f (changes by Orr)
   hostSeesVLUN: 'true'
 
 reclaimPolicy: Delete
 allowVolumeExpansion: true
+<<<<<<< HEAD
 <<<<<<< HEAD
 volumeBindingMode: Immediate
 =======
 volumeBindingMode: Immediate
 
 >>>>>>> 9c61b996 (certificate tool phase 1)
+=======
+volumeBindingMode: Immediate
+>>>>>>> 85c76a6f (changes by Orr)

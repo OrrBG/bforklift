@@ -11,12 +11,17 @@ kubeconfig: "/home/amit/.kube/config"
 >>>>>>> 9c61b996 (certificate tool phase 1)
 =======
 test-namespace: ontap-vsphere-populator-test
+<<<<<<< HEAD
 kubeconfig: "/home/obengali/.kube/config"
 >>>>>>> b2322540 (WIP)
+=======
+kubeconfig: "/home/bodnopoz/work/kubeconfig3par.yaml"
+>>>>>>> 85c76a6f (changes by Orr)
 secret-name: populator-secret
 controller-path: assets/manifests/xcopy-setup/controller.yaml
 test-labels: vsphere-populator
 ### images
+<<<<<<< HEAD
 <<<<<<< HEAD
 test-image-label:  devel
 test-populator-image: quay.io/bodnopoz/vsphere-xcopy-volume-populator:devel
@@ -33,6 +38,10 @@ storage-class-name: hpe-3par-isci-block-rwx
 =======
 test-image-label:  0.47
 test-populator-image: quay.io/rh-ee-obengali/vsphere-xcopy-volume-populator
+=======
+test-image-label:  devel
+test-populator-image: quay.io/kubev2v/vsphere-xcopy-volume-populator
+>>>>>>> 85c76a6f (changes by Orr)
 ### storage
 <<<<<<< HEAD
 storage-vendor: primera3par
@@ -47,5 +56,9 @@ storage-url: ntap-assisted-installer.mgmt.lab.eng.tlv2.redhat.com
 vsphere-password: '!*T8!n*JSk3S'
 vsphere-user: rgolan@ecosystem.content.vsphere
 vsphere-url: eco-vcenter-server.lab.eng.tlv2.redhat.com
+<<<<<<< HEAD
 storage-class-name: xcopy-storage-class
 >>>>>>> b2322540 (WIP)
+=======
+storage-class-name: rhosqe-ontap-san-block
+>>>>>>> 85c76a6f (changes by Orr)
