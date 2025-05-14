@@ -5,7 +5,10 @@ import (
 	"certificate-tool/internal/utils"
 	"context"
 	"fmt"
+<<<<<<< HEAD
 	"time"
+=======
+>>>>>>> 233825ac (WIP test plan)
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
@@ -20,8 +23,13 @@ type TestCase struct {
 }
 
 // Run provisions per-pod PVCs, VMs, launches populator pods, and waits.
+<<<<<<< HEAD
 func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, namespace, podImage, vmImage, storageClassName, pvcYamlPath, storageVendorProduct string) error {
 	if err := ensureVMs(tc.Name, vmImage, tc.VMs); err != nil {
+=======
+func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, namespace, image, storageClassName, pvcYamlPath, storageVendorProduct string) error {
+	if err := ensureVM(tc.Name, tc.VMs); err != nil {
+>>>>>>> 233825ac (WIP test plan)
 		return fmt.Errorf("VM setup failed: %w", err)
 	}
 
@@ -32,11 +40,16 @@ func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, na
 		}
 
 		podName := fmt.Sprintf("populator-%s-%s", tc.Name, vm.NamePrefix)
+<<<<<<< HEAD
 		if err := k8s.EnsurePopulatorPod(ctx, clientset, namespace, podName, podImage, tc.Name, *vm, storageVendorProduct, pvcName); err != nil {
+=======
+		if err := k8s.EnsurePopulatorPod(ctx, clientset, namespace, podName, image, tc.Name, *vm, pvcName, storageVendorProduct); err != nil {
+>>>>>>> 233825ac (WIP test plan)
 			return fmt.Errorf("failed creating pod %s: %w", podName, err)
 		}
 	}
 
+<<<<<<< HEAD
 	newCtx, _ := context.WithTimeout(ctx, 10*time.Minute)
 	results, totalTime, err := k8s.PollPodsAndCheck(newCtx, clientset, namespace, fmt.Sprintf("test=%s", tc.Name), tc.Success.MaxTimeSeconds, 5*time.Second, time.Duration(tc.Success.MaxTimeSeconds)*time.Second)
 	if err != nil {
@@ -60,5 +73,15 @@ func ensureVMs(testName, vmImage string, vms []*utils.VM) error {
 	for _, vm := range vms {
 		vm.VmdkPath = "[eco-iscsi-ds1] vmtemptest/vmtemptest.vmdk"
 	}
+=======
+	// 3. TODO: Poll pods & check exit codes against tc.Success.MaxTimeSeconds
+	return nil
+}
+
+// ensureVM is a placeholder for clone/create logic.
+func ensureVM(testName string, vms []*utils.VM) error {
+	klog.Infof("Ensuring VMs for test %s", testName)
+	// TODO: implement actual clone/create
+>>>>>>> 233825ac (WIP test plan)
 	return nil
 }

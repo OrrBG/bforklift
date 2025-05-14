@@ -4,7 +4,11 @@ import (
 	"certificate-tool/internal/utils"
 	"context"
 	"fmt"
+<<<<<<< HEAD
 	"gopkg.in/yaml.v3"
+=======
+	"sigs.k8s.io/yaml"
+>>>>>>> 233825ac (WIP test plan)
 	"time"
 
 	"k8s.io/client-go/kubernetes"
@@ -27,11 +31,19 @@ func Parse(yamlData []byte) (*TestPlan, error) {
 }
 
 // Start runs all test cases sequentially, creating PVCs and pods, recording results.
+<<<<<<< HEAD
 func (tp *TestPlan) Start(ctx context.Context, clientset *kubernetes.Clientset, namespace, podImage, storageClassName, pvcYamlPath string) error {
 	for i := range tp.TestCases {
 		tc := &tp.TestCases[i]
 		start := time.Now()
 		if err := tc.Run(ctx, clientset, namespace, podImage, tp.Image, storageClassName, pvcYamlPath, tp.StorageVendorProduct); err != nil {
+=======
+func (tp *TestPlan) Start(ctx context.Context, clientset *kubernetes.Clientset, namespace, storageClassName, pvcYamlPath string) error {
+	for i := range tp.TestCases {
+		tc := &tp.TestCases[i]
+		start := time.Now()
+		if err := tc.Run(ctx, clientset, namespace, tp.Image, storageClassName, pvcYamlPath, tp.StorageVendorProduct); err != nil {
+>>>>>>> 233825ac (WIP test plan)
 			tc.Results = utils.TestResult{false, int64(time.Since(start).Seconds()), err.Error()}
 			return fmt.Errorf("test %s failed: %w", tc.Name, err)
 		}

@@ -2,9 +2,13 @@ package k8s
 
 import (
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"certificate-tool/internal/utils"
 =======
 >>>>>>> 9c61b996 (certificate tool phase 1)
+=======
+	"certificate-tool/internal/utils"
+>>>>>>> 233825ac (WIP test plan)
 	"context"
 	"fmt"
 
@@ -176,6 +180,9 @@ func EnsurePersistentVolumeClaim(clientset *kubernetes.Clientset, namespace stri
 	return nil
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 233825ac (WIP test plan)
 
 //func ensurePVC(ctx context.Context, clientset *kubernetes.Clientset, namespace, pvcName, yamlPath string) error {
 //	data, err := ioutil.ReadFile(yamlPath)
@@ -222,12 +229,23 @@ func EnsurePopulatorPod(ctx context.Context, clientset *kubernetes.Clientset, na
 					{Name: "target", VolumeSource: corev1.VolumeSource{PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: pvcName}}},
 				},
 				Containers: []corev1.Container{{
+<<<<<<< HEAD
 					Name:            "populate",
 					Image:           image,
 					ImagePullPolicy: corev1.PullAlways,
 					VolumeDevices:   []corev1.VolumeDevice{{Name: "target", DevicePath: "/dev/block"}},
 					Ports:           []corev1.ContainerPort{{Name: "metrics", ContainerPort: 8443, Protocol: corev1.ProtocolTCP}},
 					EnvFrom:         []corev1.EnvFromSource{{SecretRef: &corev1.SecretEnvSource{corev1.LocalObjectReference{Name: "populator-secret"}, &mustBeDefined}}},
+=======
+					Name:                   "populate",
+					Image:                  image,
+					ImagePullPolicy:        corev1.PullAlways,
+					TerminationMessagePath: corev1.TerminationMessagePathDefault,
+					Resources:              corev1.ResourceRequirements{},
+					VolumeDevices:          []corev1.VolumeDevice{{Name: "target", DevicePath: "/dev/block"}},
+					Ports:                  []corev1.ContainerPort{{Name: "metrics", ContainerPort: 8443, Protocol: corev1.ProtocolTCP}},
+					EnvFrom:                []corev1.EnvFromSource{{SecretRef: &corev1.SecretEnvSource{corev1.LocalObjectReference{Name: "populator-secret"}, &mustBeDefined}}},
+>>>>>>> 233825ac (WIP test plan)
 					Args: []string{
 						fmt.Sprintf("--source-vmdk=%s", vm.VmdkPath),
 						fmt.Sprintf("--target-namespace=%s", namespace),
@@ -254,5 +272,8 @@ func EnsurePopulatorPod(ctx context.Context, clientset *kubernetes.Clientset, na
 	klog.Infof("Populator pod %s already exists", podName)
 	return nil
 }
+<<<<<<< HEAD
 =======
 >>>>>>> 9c61b996 (certificate tool phase 1)
+=======
+>>>>>>> 233825ac (WIP test plan)
