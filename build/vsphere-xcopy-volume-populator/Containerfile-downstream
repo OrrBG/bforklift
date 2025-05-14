@@ -16,6 +16,12 @@ USER 1001
 =======
 >>>>>>> aac9d524 (MTV-2271 | Enable prefetch for vsphere xcopy d/s (#1823))
 
+# We need python for running a test during build process
+# This is not used for actually running the populator in production
+USER root
+RUN dnf install -y python
+USER 1001
+
 RUN make vmkfstools-wrapper
 
 FROM registry.redhat.io/ubi9-minimal:9.5-1742914212
