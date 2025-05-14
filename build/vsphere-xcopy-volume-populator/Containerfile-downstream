@@ -6,12 +6,15 @@ ENV GOFLAGS="-mod=vendor -tags=strictfipsruntime"
 ENV GOEXPERIMENT=strictfipsruntime
 
 RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o bin/vsphere-xcopy-volume-populator
+<<<<<<< HEAD
 
 # We need python for running a test during build process
 # This is not used for actually running the populator in production
 USER root
 RUN dnf install -y python
 USER 1001
+=======
+>>>>>>> aac9d524 (MTV-2271 | Enable prefetch for vsphere xcopy d/s (#1823))
 
 RUN make vmkfstools-wrapper
 
