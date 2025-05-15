@@ -33,7 +33,7 @@ OVIRT_POPULATOR     ?= https://raw.githubusercontent.com/kubev2v/forklift/main/o
 VSPHERE_POPULATOR   ?= https://raw.githubusercontent.com/kubev2v/forklift/main/operator/config/crd/bases/forklift.konveyor.io_vspherexcopyvolumepopulators.yaml
 CLUSTER_ROLE   ?= https://raw.githubusercontent.com/kubev2v/forklift/main/operator/config/rbac/populator-controller/role.yaml
 ROLE_BINDING   ?= https://raw.githubusercontent.com/kubev2v/forklift/main/operator/config/rbac/populator-controller/role_binding.yaml
-VM_NAME      ?= certificate-vm1
+VM_NAME      ?= xcopy-popualtor-compliance-test-vm
 DATA_STORE   ?= eco-iscsi-ds1
 BINARY = certificate-tool
 VMDK_PATH ?= "assets/cloudinit/fedora.vmdk"
@@ -102,5 +102,12 @@ all: create-vm test-xcopy ## Run all steps in sequence.
 
 clean: ## Clean built artifacts.
 	@rm -f $(BINARY)
-	@#$(KUBECTL) delete namespace $(POD_NAMESPACE)
+	@$(KUBECTL) delete namespace $(POD_NAMESPACE)
+	./$(BINARY) destroy-vm \
+		--vm-name 				$(VM_NAME) \
+		--vsphere-user          "$(VSPHERE_USER)" \
+		--vsphere-password      "$(VSPHERE_PASSWORD)" \
+		--vsphere-url           "$(VSPHERE_URL)/sdk" \
+		--data-center           "Eco-Datacenter" \
+		--data-store             $(DATA_STORE)
 
