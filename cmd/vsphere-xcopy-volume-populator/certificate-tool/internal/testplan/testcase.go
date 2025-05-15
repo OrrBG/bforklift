@@ -28,6 +28,7 @@ type TestCase struct {
 
 // Run provisions per-pod PVCs, VMs, launches populator pods, and waits.
 <<<<<<< HEAD
+<<<<<<< HEAD
 func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, namespace, podImage, vmImage, storageClassName, pvcYamlPath, storageVendorProduct string) error {
 	if err := ensureVMs(tc.Name, vmImage, tc.VMs); err != nil {
 =======
@@ -38,6 +39,10 @@ func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, na
 =======
 	if err := ensureVMs(tc.Name, tc.VMs); err != nil {
 >>>>>>> 7d84a3c1 (added polling for pods to finish)
+=======
+func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, namespace, podImage, vmImage, storageClassName, pvcYamlPath, storageVendorProduct string) error {
+	if err := ensureVMs(tc.Name, vmImage, tc.VMs); err != nil {
+>>>>>>> b344f31b (fix pvc binding)
 		return fmt.Errorf("VM setup failed: %w", err)
 	}
 
@@ -50,6 +55,7 @@ func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, na
 		podName := fmt.Sprintf("populator-%s-%s", tc.Name, vm.NamePrefix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if err := k8s.EnsurePopulatorPod(ctx, clientset, namespace, podName, podImage, tc.Name, *vm, storageVendorProduct, pvcName); err != nil {
 =======
 		if err := k8s.EnsurePopulatorPod(ctx, clientset, namespace, podName, image, tc.Name, *vm, pvcName, storageVendorProduct); err != nil {
@@ -57,6 +63,9 @@ func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, na
 =======
 		if err := k8s.EnsurePopulatorPod(ctx, clientset, namespace, podName, image, tc.Name, *vm, storageVendorProduct, pvcName); err != nil {
 >>>>>>> 7d84a3c1 (added polling for pods to finish)
+=======
+		if err := k8s.EnsurePopulatorPod(ctx, clientset, namespace, podName, podImage, tc.Name, *vm, storageVendorProduct, pvcName); err != nil {
+>>>>>>> b344f31b (fix pvc binding)
 			return fmt.Errorf("failed creating pod %s: %w", podName, err)
 		}
 	}
@@ -98,7 +107,7 @@ func ensureVMs(testName, vmImage string, vms []*utils.VM) error {
 }
 
 // ensureVMs is a placeholder for clone/create logic.
-func ensureVMs(testName string, vms []*utils.VM) error {
+func ensureVMs(testName, vmImage string, vms []*utils.VM) error {
 	klog.Infof("Ensuring VMs for test %s", testName)
 	// TODO: implement actual clone/create
 >>>>>>> 233825ac (WIP test plan)

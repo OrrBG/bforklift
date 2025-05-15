@@ -7,6 +7,7 @@ spec:
   accessModes:
     - ReadWriteOnce
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   dataSource:
     apiGroup: forklift.konveyor.io
@@ -17,6 +18,8 @@ spec:
     kind: VSphereXcopyVolumePopulator
     name: test-xcopy
 >>>>>>> 9c61b996 (certificate tool phase 1)
+=======
+>>>>>>> b344f31b (fix pvc binding)
   resources:
     requests:
       storage: 10Gi
