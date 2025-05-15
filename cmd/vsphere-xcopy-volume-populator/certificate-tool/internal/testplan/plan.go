@@ -5,10 +5,14 @@ import (
 	"context"
 	"fmt"
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"gopkg.in/yaml.v3"
 =======
 	"sigs.k8s.io/yaml"
 >>>>>>> 233825ac (WIP test plan)
+=======
+	"gopkg.in/yaml.v3"
+>>>>>>> 248c3298 (fix yaml parsing)
 	"time"
 
 	"k8s.io/client-go/kubernetes"
