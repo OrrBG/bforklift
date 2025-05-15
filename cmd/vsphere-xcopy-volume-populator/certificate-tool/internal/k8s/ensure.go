@@ -230,12 +230,16 @@ func EnsurePopulatorPod(ctx context.Context, clientset *kubernetes.Clientset, na
 				},
 				Containers: []corev1.Container{{
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7d84a3c1 (added polling for pods to finish)
 					Name:            "populate",
 					Image:           image,
 					ImagePullPolicy: corev1.PullAlways,
 					VolumeDevices:   []corev1.VolumeDevice{{Name: "target", DevicePath: "/dev/block"}},
 					Ports:           []corev1.ContainerPort{{Name: "metrics", ContainerPort: 8443, Protocol: corev1.ProtocolTCP}},
 					EnvFrom:         []corev1.EnvFromSource{{SecretRef: &corev1.SecretEnvSource{corev1.LocalObjectReference{Name: "populator-secret"}, &mustBeDefined}}},
+<<<<<<< HEAD
 =======
 					Name:                   "populate",
 					Image:                  image,
@@ -246,6 +250,8 @@ func EnsurePopulatorPod(ctx context.Context, clientset *kubernetes.Clientset, na
 					Ports:                  []corev1.ContainerPort{{Name: "metrics", ContainerPort: 8443, Protocol: corev1.ProtocolTCP}},
 					EnvFrom:                []corev1.EnvFromSource{{SecretRef: &corev1.SecretEnvSource{corev1.LocalObjectReference{Name: "populator-secret"}, &mustBeDefined}}},
 >>>>>>> 233825ac (WIP test plan)
+=======
+>>>>>>> 7d84a3c1 (added polling for pods to finish)
 					Args: []string{
 						fmt.Sprintf("--source-vmdk=%s", vm.VmdkPath),
 						fmt.Sprintf("--target-namespace=%s", namespace),

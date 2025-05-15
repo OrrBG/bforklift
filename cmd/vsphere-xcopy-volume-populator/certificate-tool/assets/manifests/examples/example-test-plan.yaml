@@ -9,6 +9,7 @@ tests:
     success:
       maxTimeSeconds: 300
 <<<<<<< HEAD
+<<<<<<< HEAD
     vms:
       - namePrefix: testvm1
         size: 10Gi
@@ -17,3 +18,8 @@ tests:
         - namePrefix: testvm1
           size: 10Gi
 >>>>>>> 248c3298 (fix yaml parsing)
+=======
+    vms:
+      - namePrefix: testvm1
+        size: 10Gi
+>>>>>>> 7d84a3c1 (added polling for pods to finish)

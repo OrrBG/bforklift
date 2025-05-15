@@ -6,9 +6,13 @@ import (
 	"context"
 	"fmt"
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"time"
 =======
 >>>>>>> 233825ac (WIP test plan)
+=======
+	"time"
+>>>>>>> 7d84a3c1 (added polling for pods to finish)
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
@@ -28,8 +32,12 @@ func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, na
 	if err := ensureVMs(tc.Name, vmImage, tc.VMs); err != nil {
 =======
 func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, namespace, image, storageClassName, pvcYamlPath, storageVendorProduct string) error {
+<<<<<<< HEAD
 	if err := ensureVM(tc.Name, tc.VMs); err != nil {
 >>>>>>> 233825ac (WIP test plan)
+=======
+	if err := ensureVMs(tc.Name, tc.VMs); err != nil {
+>>>>>>> 7d84a3c1 (added polling for pods to finish)
 		return fmt.Errorf("VM setup failed: %w", err)
 	}
 
@@ -41,16 +49,24 @@ func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, na
 
 		podName := fmt.Sprintf("populator-%s-%s", tc.Name, vm.NamePrefix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if err := k8s.EnsurePopulatorPod(ctx, clientset, namespace, podName, podImage, tc.Name, *vm, storageVendorProduct, pvcName); err != nil {
 =======
 		if err := k8s.EnsurePopulatorPod(ctx, clientset, namespace, podName, image, tc.Name, *vm, pvcName, storageVendorProduct); err != nil {
 >>>>>>> 233825ac (WIP test plan)
+=======
+		if err := k8s.EnsurePopulatorPod(ctx, clientset, namespace, podName, image, tc.Name, *vm, storageVendorProduct, pvcName); err != nil {
+>>>>>>> 7d84a3c1 (added polling for pods to finish)
 			return fmt.Errorf("failed creating pod %s: %w", podName, err)
 		}
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	newCtx, _ := context.WithTimeout(ctx, 10*time.Minute)
+=======
+	newCtx, _ := context.WithTimeout(ctx, 30*time.Second)
+>>>>>>> 7d84a3c1 (added polling for pods to finish)
 	results, totalTime, err := k8s.PollPodsAndCheck(newCtx, clientset, namespace, fmt.Sprintf("test=%s", tc.Name), tc.Success.MaxTimeSeconds, 5*time.Second, time.Duration(tc.Success.MaxTimeSeconds)*time.Second)
 	if err != nil {
 		return fmt.Errorf("failed polling pods: %w", err)
@@ -63,6 +79,7 @@ func (tc *TestCase) Run(ctx context.Context, clientset *kubernetes.Clientset, na
 		}
 
 	}
+<<<<<<< HEAD
 	return nil
 }
 
@@ -75,11 +92,13 @@ func ensureVMs(testName, vmImage string, vms []*utils.VM) error {
 	}
 =======
 	// 3. TODO: Poll pods & check exit codes against tc.Success.MaxTimeSeconds
+=======
+>>>>>>> 7d84a3c1 (added polling for pods to finish)
 	return nil
 }
 
-// ensureVM is a placeholder for clone/create logic.
-func ensureVM(testName string, vms []*utils.VM) error {
+// ensureVMs is a placeholder for clone/create logic.
+func ensureVMs(testName string, vms []*utils.VM) error {
 	klog.Infof("Ensuring VMs for test %s", testName)
 	// TODO: implement actual clone/create
 >>>>>>> 233825ac (WIP test plan)
