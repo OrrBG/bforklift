@@ -266,6 +266,7 @@ type VM struct {
 	CoresPerSocket        int32          `sql:""`
 	MemoryMB              int32          `sql:""`
 	GuestName             string         `sql:""`
+	HostName              string         `sql:""`
 	GuestID               string         `sql:""`
 	BalloonedMemory       int32          `sql:""`
 	IpAddress             string         `sql:""`
@@ -325,6 +326,7 @@ type Device struct {
 type NIC struct {
 	Network Ref    `json:"network"`
 	MAC     string `json:"mac"`
+	Index   int    `json:"order"`
 }
 
 // Guest network.

@@ -6,7 +6,7 @@ import (
 )
 
 // NewPopulatorSecret creates a Kubernetes Secret for passing vSphere and storage credentials.
-func NewPopulatorSecret(namespace, storagePassword, storageUser, storageUrl, vspherePassword, vsphereUser, vsphereUrl, secretName string) *corev1.Secret {
+func NewPopulatorSecret(namespace, storageSkipSSLVerification, storagePassword, storageUser, storageUrl, vspherePassword, vsphereUser, vsphereUrl, secretName string) *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
@@ -21,6 +21,7 @@ func NewPopulatorSecret(namespace, storagePassword, storageUser, storageUrl, vsp
 			"GOVMOMI_HOSTNAME": vsphereUrl,
 			"GOVMOMI_PASSWORD": vspherePassword,
 			"GOVMOMI_USERNAME": vsphereUser,
+			"STORAGE_SKIP_SSL_VERIFICATION": storageSkipSSLVerification,
 		},
 	}
 }

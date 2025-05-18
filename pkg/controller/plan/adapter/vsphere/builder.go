@@ -150,6 +150,24 @@ var osMap = map[string]string{
 	"windows2022srvNext_64Guest": "win2k22",
 }
 
+// Global list of legacy guest OS identifiers and names (OSes without native SHA-2 support)
+var legacyIdentifiers = []string{
+	"windows xp",
+	"winXPProGuest",
+	"server 2003",
+	"winNetEnterpriseGuest",
+	"winNetStandardGuest",
+	"winNetEnterprise64Guest",
+	"vista",
+	"windowsVistaGuest",
+	"server 2008",
+	"longhornGuest",
+	"windows 7",
+	"windows7Guest",
+	"server 2008 r2",
+	"windows7Server64Guest",
+}
+
 // Regex which matches the snapshot identifier suffix of a
 // vSphere disk backing file.
 var backingFilePattern = regexp.MustCompile(`-\d\d\d\d\d\d.vmdk`)
@@ -205,6 +223,19 @@ func (r *Builder) ConfigMap(_ ref.Ref, _ *core.Secret, _ *core.ConfigMap) (err e
 	return
 }
 
+func IsLegacyWindows(vm *model.VM) bool {
+
+	guestID := strings.ToLower(vm.GuestID)
+	guestName := strings.ToLower(vm.GuestName)
+
+	for _, id := range legacyIdentifiers {
+		if strings.Contains(guestID, id) || strings.Contains(guestName, id) {
+			return true
+		}
+	}
+	return false
+}
+
 func (r *Builder) PodEnvironment(vmRef ref.Ref, sourceSecret *core.Secret) (env []core.EnvVar, err error) {
 	vm := &model.VM{}
 	err = r.Source.Inventory.Find(vm, vmRef)
@@ -225,6 +256,27 @@ func (r *Builder) PodEnvironment(vmRef ref.Ref, sourceSecret *core.Secret) (env 
 		env = append(env, core.EnvVar{
 			Name:  "V2V_preserveStaticIPs",
 			Value: "true",
+		})
+	}
+
+	useLegacyDrivers := false
+	if r.Plan.Spec.InstallLegacyDrivers == nil {
+		useLegacyDrivers = IsLegacyWindows(vm)
+	} else {
+		useLegacyDrivers = *r.Plan.Spec.InstallLegacyDrivers
+	}
+
+	if useLegacyDrivers {
+		env = append(env, core.EnvVar{
+			Name:  "VIRTIO_WIN",
+			Value: "/usr/local/virtio-win.iso",
+		})
+	}
+
+	if vm.HostName != "" {
+		env = append(env, core.EnvVar{
+			Name:  "V2V_HOSTNAME",
+			Value: vm.HostName,
 		})
 	}
 
@@ -702,89 +754,75 @@ func (r *Builder) mapNetworks(vm *model.VM, object *cnv.VirtualMachineSpec) (err
 
 	numNetworks := 0
 	netMapIn := r.Context.Map.Network.Spec.Map
-	for i := range netMapIn {
-		mapped := &netMapIn[i]
 
-		// Skip network mappings with destination type 'Ignored'
-		if mapped.Destination.Type == Ignored {
+	for _, nic := range vm.NICs {
+		mapped := r.findNetworkMapping(nic, netMapIn)
+
+		// Skip if no valid mapping found or the destination type is Ignored
+		if mapped == nil || mapped.Destination.Type == Ignored {
 			continue
 		}
 
-		ref := mapped.Source
-		network := &model.Network{}
-		fErr := r.Source.Inventory.Find(network, ref)
-		if fErr != nil {
-			err = fErr
-			return
-		}
+		networkName := fmt.Sprintf("net-%v", numNetworks)
 
-		needed := []vsphere.NIC{}
-		for _, nic := range vm.NICs {
-			switch network.Variant {
-			case vsphere.NetDvPortGroup, vsphere.OpaqueNetwork:
-				if nic.Network.ID == network.Key {
-					needed = append(needed, nic)
-				}
-			default:
-				if nic.Network.ID == network.ID {
-					needed = append(needed, nic)
-				}
+		// If a name template is defined, try to use it
+		networkNameTemplate := r.getNetworkNameTemplate(vm)
+		if networkNameTemplate != "" {
+			templateData := api.NetworkNameTemplateData{
+				NetworkName:      mapped.Destination.Name,
+				NetworkNamespace: mapped.Destination.Namespace,
+				NetworkType:      mapped.Destination.Type,
+				NetworkIndex:     numNetworks,
+			}
+			if generated, err := r.executeTemplate(networkNameTemplate, &templateData); err == nil && generated != "" {
+				networkName = generated
+			} else {
+				r.Log.Info("Failed to generate network name using template, using default", "template", networkNameTemplate, "error", err)
 			}
 		}
-		if len(needed) == 0 {
-			continue
+
+		numNetworks++
+		kNetwork := cnv.Network{Name: networkName}
+		kInterface := cnv.Interface{
+			Name:       networkName,
+			Model:      Virtio,
+			MacAddress: nic.MAC,
 		}
-		for _, nic := range needed {
-			networkName := fmt.Sprintf("net-%v", numNetworks)
 
-			// If the network name template is set, use it to generate the network name.
-			networkNameTemplate := r.getNetworkNameTemplate(vm)
-			if networkNameTemplate != "" {
-				// Create template data
-				templateData := api.NetworkNameTemplateData{
-					NetworkName:      mapped.Destination.Name,
-					NetworkNamespace: mapped.Destination.Namespace,
-					NetworkType:      mapped.Destination.Type,
-					NetworkIndex:     numNetworks,
-				}
-
-				networkName, err = r.executeTemplate(networkNameTemplate, &templateData)
-				if err != nil {
-					// Failed to generate network name using template
-					r.Log.Info("Failed to generate network name using template, using default name", "template", networkNameTemplate, "error", err)
-
-					// Fallback to default name and reset error
-					networkName = fmt.Sprintf("net-%v", numNetworks)
-					err = nil
-				}
+		switch mapped.Destination.Type {
+		case Pod:
+			kNetwork.Pod = &cnv.PodNetwork{}
+			kInterface.Masquerade = &cnv.InterfaceMasquerade{}
+		case Multus:
+			kNetwork.Multus = &cnv.MultusNetwork{
+				NetworkName: path.Join(mapped.Destination.Namespace, mapped.Destination.Name),
 			}
-
-			numNetworks++
-			kNetwork := cnv.Network{
-				Name: networkName,
-			}
-			kInterface := cnv.Interface{
-				Name:       networkName,
-				Model:      Virtio,
-				MacAddress: nic.MAC,
-			}
-			switch mapped.Destination.Type {
-			case Pod:
-				kNetwork.Pod = &cnv.PodNetwork{}
-				kInterface.Masquerade = &cnv.InterfaceMasquerade{}
-			case Multus:
-				kNetwork.Multus = &cnv.MultusNetwork{
-					NetworkName: path.Join(mapped.Destination.Namespace, mapped.Destination.Name),
-				}
-				kInterface.Bridge = &cnv.InterfaceBridge{}
-			}
-			kNetworks = append(kNetworks, kNetwork)
-			kInterfaces = append(kInterfaces, kInterface)
+			kInterface.Bridge = &cnv.InterfaceBridge{}
 		}
+
+		kNetworks = append(kNetworks, kNetwork)
+		kInterfaces = append(kInterfaces, kInterface)
 	}
+
 	object.Template.Spec.Networks = kNetworks
 	object.Template.Spec.Domain.Devices.Interfaces = kInterfaces
 	return
+}
+
+func (r *Builder) findNetworkMapping(nic vsphere.NIC, netMap []api.NetworkPair) *api.NetworkPair {
+	for i := range netMap {
+		candidate := &netMap[i]
+		network := &model.Network{}
+		if err := r.Source.Inventory.Find(network, candidate.Source); err != nil {
+			continue
+		}
+
+		if (network.Variant == vsphere.NetDvPortGroup || network.Variant == vsphere.OpaqueNetwork) &&
+			nic.Network.ID == network.Key || nic.Network.ID == network.ID {
+			return candidate
+		}
+	}
+	return nil
 }
 
 func (r *Builder) mapInput(object *cnv.VirtualMachineSpec) {
@@ -929,6 +967,7 @@ func (r *Builder) mapDisks(vm *model.VM, vmRef ref.Ref, persistentVolumeClaims [
 		// the original name. The trim will remove the suffix from the disk name showing the original name.
 		pvc := pvcMap[trimBackingFileName(disk.File)]
 		if pvc == nil {
+			r.Log.Info("No matching PVC found for disk", "diskFile", disk.File, "trimmedFile", trimBackingFileName(disk.File))
 			return fmt.Errorf("failed to find persistent volume for disk %s", disk.File)
 		}
 		volumeName := fmt.Sprintf("vol-%v", i)
@@ -994,9 +1033,22 @@ func (r *Builder) mapDisks(vm *model.VM, vmRef ref.Ref, persistentVolumeClaims [
 		kVolumes = append(kVolumes, volume)
 		kDisks = append(kDisks, kubevirtDisk)
 	}
-	// For multiboot VMs, if the selected boot device is the current disk,
-	// set it as the first in the boot order.
-	kDisks[bootDisk].BootOrder = ptr.To(uint(1))
+	if len(kDisks) == 0 {
+		r.Log.Info("No disks were successfully mapped", "vm", vm.Name, "vmID", vmRef.ID)
+		for _, d := range disks {
+			r.Log.Info("Unmapped disk", "diskFile", d.File)
+		}
+		for key, pvc := range pvcMap {
+			r.Log.Info("Available PVC mapping", "diskKey", key, "pvcName", pvc.Name)
+		}
+		return fmt.Errorf("no disks were successfully mapped for VM %s", vm.Name)
+	} else if bootDisk < len(kDisks) {
+		// For multiboot VMs, if the selected boot device is the current disk,
+		// set it as the first in the boot order.
+		kDisks[bootDisk].BootOrder = ptr.To(uint(1))
+	} else {
+		r.Log.Info("Boot disk index out of range", "bootDisk", bootDisk, "diskCount", len(kDisks), "vm", vm.Name)
+	}
 
 	object.Template.Spec.Volumes = kVolumes
 	object.Template.Spec.Domain.Devices.Disks = kDisks
@@ -1282,7 +1334,6 @@ func (r *Builder) PopulatorVolumes(vmRef ref.Ref, annotations map[string]string,
 						Annotations: annotations,
 					},
 					Spec: core.PersistentVolumeClaimSpec{
-						AccessModes:      []core.PersistentVolumeAccessMode{core.ReadWriteOnce},
 						StorageClassName: &storageClass,
 						VolumeMode:       &pvblock,
 						Resources: core.ResourceRequirements{
@@ -1296,6 +1347,11 @@ func (r *Builder) PopulatorVolumes(vmRef ref.Ref, annotations map[string]string,
 							Name:     commonName,
 						},
 					},
+				}
+				// set the access mode and volume mode if they were specified in the storage map.
+				// otherwise, let the storage profile decide the default values.
+				if mapped.Destination.AccessMode != "" {
+					pvc.Spec.AccessModes = []core.PersistentVolumeAccessMode{mapped.Destination.AccessMode}
 				}
 
 				if annotations == nil {

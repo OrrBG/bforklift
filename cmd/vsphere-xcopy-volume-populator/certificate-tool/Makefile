@@ -5,7 +5,6 @@ ENV_FILE ?= assets/config/.env
 -include $(ENV_FILE)
 GOPATH ?= `go env GOPATH`
 GOBIN ?= $(GOPATH)/bin
-SHELL := /usr/bin/env bash
 # By default use the kubectl installed by the
 # 'kubectl' target
 DEFAULT_KUBECTL = $(GOBIN)/kubectl
@@ -90,24 +89,23 @@ create-vm: build ## Run certificate-tool create-vm subcommand.
 		--local-vmdk-path        $(VMDK_PATH) \
 		--data-store             $(DATA_STORE)
 
-test-xcopy: build prepare
+test-xcopy: build #prepare
 	@echo "Running test-xcopy..."
 	@./$(BINARY) test-xcopy \
 		--kubeconfig         	$(KUBECONFIG) \
 		--pvc-yaml           	"assets/manifests/xcopy-setup/xcopy-pvc.yaml"\
-		--populator-yaml     	"assets/manifests/xcopy-setup/populator.yaml" \
-		--vmdk-path          	"[$(DATA_STORE)] $(VM_NAME)/fedora.vmdk"  \
-		--storage-vendor     	$(STORAGE_VENDOR) \
+		--storage-vendor-product     	$(STORAGE_VENDOR) \
 		--storage-class-name 	$(STORAGE_CLASS_NAME) \
-		--test-populator-image  $(TEST_POPULATOR_IMAGE)
+		--test-populator-image  $(TEST_POPULATOR_IMAGE) \
+		--plan-yaml-path  "assets/manifests/examples/example-test-plan.yaml"
 
 
 all: create-vm test-xcopy ## Run all steps in sequence.
 
 clean: ## Clean built artifacts.
 	@rm -f $(BINARY)
-	@$(KUBECTL) delete vspherexcopyvolumepopulators.forklift.konveyor.io -n $(POD_NAMESPACE) test-xcopy
+	@#$(KUBECTL) delete vspherexcopyvolumepopulators.forklift.konveyor.io -n $(POD_NAMESPACE) test-xcopy
 	@$(KUBECTL) delete pods --all -n $(POD_NAMESPACE)
-	@$(KUBECTL) patch pvc xcopy-pvc -n $(POD_NAMESPACE) -p '{"metadata":{"finalizers":[]}}' --type=merge
+	@#$(KUBECTL) patch pvc xcopy-pvc -n $(POD_NAMESPACE) -p '{"metadata":{"finalizers":[]}}' --type=merge
 	@$(KUBECTL) delete pvc --all -n $(POD_NAMESPACE)
 

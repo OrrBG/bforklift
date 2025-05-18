@@ -38,6 +38,8 @@
             -v $val{verify-md5}
          </execute>
       </command>
+
    </commands>
+
 </plugin>
 

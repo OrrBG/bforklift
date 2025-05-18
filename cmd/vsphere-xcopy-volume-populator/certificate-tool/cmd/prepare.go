@@ -5,21 +5,22 @@ import (
 	// appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/klog/v2"
 
+	rbacv1 "k8s.io/api/rbac/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 var (
-	testNamespace      string
-	testImageLabel     string
-	testLabels         string
-	testPopulatorImage string
-	podNamespace       string
-	controllerPath     string
-	saName             string
-	roleName           string
-	secretName         string
+	testNamespace  				string
+	testImageLabel 				string
+	testLabels     				string
+	podNamespace   				string
+	controllerPath 				string
+	saName         				string
+	roleName       				string
+	secretName     				string
+	storageSkipSSLVerification  string
 )
 
 var prepare = &cobra.Command{
@@ -44,19 +45,25 @@ var prepare = &cobra.Command{
 			panic(err)
 		}
 
-		if err := k8s.EnsureNamespace(clientset, testNamespace); err != nil {
+		if err := k8s.EnsureNamespace(clientset, podNamespace); err != nil {
 			panic(err)
 		}
-		if err := k8s.EnsureServiceAccount(clientset, testNamespace, saName); err != nil {
-			panic(err)
-		}
-
-		clusterRole := k8s.NewClusterRole(roleName)
-		if err := k8s.EnsureClusterRole(clientset, clusterRole); err != nil {
+		if err := k8s.EnsureServiceAccount(clientset, podNamespace, saName); err != nil {
 			panic(err)
 		}
 
-		clusterRoleBinding := k8s.NewClusterRoleBinding(testNamespace, roleName, saName)
+		populatorClusterRole := k8s.NewClusterRole(roleName)
+		// Add rules for "persistentvolumes"
+		populatorClusterRole.Rules = append(populatorClusterRole.Rules, rbacv1.PolicyRule{
+			APIGroups: []string{""},
+			Resources: []string{"persistentvolumes"},
+			Verbs:     []string{"get"},
+		})
+		if err := k8s.EnsureClusterRole(clientset, populatorClusterRole); err != nil {
+			panic(err)
+		}
+
+		clusterRoleBinding := k8s.NewClusterRoleBinding(podNamespace, roleName, saName)
 		if err := k8s.EnsureClusterRoleBinding(clientset, clusterRoleBinding); err != nil {
 			panic(err)
 		}
@@ -87,7 +94,7 @@ var prepare = &cobra.Command{
 			panic(err)
 		}
 		klog.Infof("Ensuring secret:", kubeconfigPath)
-		Secret := k8s.NewPopulatorSecret(podNamespace, storagePassword, storageUser, storageUrl, vspherePassword, vsphereUser, vsphereUrl, secretName)
+		Secret := k8s.NewPopulatorSecret(podNamespace, storagePassword, storageUser, storageUrl, vspherePassword, vsphereUser, vsphereUrl, storageSkipSSLVerification, secretName)
 		if err := k8s.EnsureSecret(clientset, Secret); err != nil {
 			panic(err)
 		}
@@ -105,6 +112,6 @@ func init() {
 	prepare.Flags().StringVar(&roleName, "cluster-role-name", "populator", "ClusterRole name to create/use")
 	prepare.Flags().StringVar(&testImageLabel, "test-image-label", "0.38", "Image tag for test pods")
 	prepare.Flags().StringVar(&testLabels, "test-labels", "vsphere-populator", "Labels for test objects")
-	prepare.Flags().StringVar(&testPopulatorImage, "test-populator-image", "quay.io/amitos/vsphere-xcopy-volume-populator", "Populator image")
 	prepare.Flags().StringVar(&secretName, "secret-name", "populator-secret", "Name of the secret to create")
+	prepare.Flags().StringVar(&storageSkipSSLVerification, "storage-skip-ssl-verification", "true", "skip the storage ssl verification")
 }
