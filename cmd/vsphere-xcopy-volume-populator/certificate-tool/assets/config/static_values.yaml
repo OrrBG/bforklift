@@ -1,6 +1,5 @@
 ## test values
 ### cluster config
-pod-namespace: pop
 test-namespace: vsphere-populator-test
 kubeconfig: "/home/bodnopoz/work/kubeconfig3par.yaml"
 secret-name: populator-secret
