@@ -23,9 +23,9 @@
             </parameter>
          </input-spec>
          <output-spec>
-             <structure typeName="result">
-                 <field name="status"> <string/></field>
-                 <field name="message"> <string/></field>
+            <structure typeName="result">
+               <field name="status"> <string/></field>
+               <field name="message"> <string/></field>
             </structure>
          </output-spec>
          <format-parameters>
@@ -42,4 +42,3 @@
    </commands>
 
 </plugin>
-

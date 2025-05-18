@@ -3,10 +3,12 @@ package populator
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -76,6 +78,7 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 		return err
 	}
 	klog.Infof("Got ESXI host: %s", host)
+
 	// for iSCSI add the host to the group using IQN. Is there something else for FC?
 	r, err := p.VSphereClient.RunEsxCommand(context.Background(), host, []string{"storage", "core", "adapter", "list"})
 	if err != nil {
@@ -194,7 +197,8 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 			klog.Info("rescan to delete dead devices completed")
 		}
 	}()
-	r, err = p.VSphereClient.RunEsxCommand(context.Background(), host, []string{"vmkfstools", "clone", "-s", vmDisk.Path(), "-t", targetLUN, "-v", "true"})
+
+	r, err = p.VSphereClient.RunEsxCommand(context.Background(), host, []string{"vmkfstools", "clone", "-s", vmDisk.Path(), "-t", targetLUN})
 	if err != nil {
 		klog.Infof("error during copy, response from esxcli %+v", r)
 		return err
@@ -205,17 +209,7 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 	for _, l := range r {
 		response += l.Value("message")
 	}
-<<<<<<< HEAD
-	go func() {
-		// TODO need to process the vmkfstools stderr(probably) and to write the
-		// progress to a file, and then continuously read and report on the channel
-		progress <- 100
-		quit <- nil
-	}()
-	return nil
-=======
 
-<<<<<<< HEAD
 	v := vmkfstoolsClone{}
 	err = json.Unmarshal([]byte(response), &v)
 	if err != nil {
@@ -267,14 +261,4 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 
 		time.Sleep(taskPollingInterval)
 	}
->>>>>>> c9589906 (xcopy-populator: refactor vmkfstools-wrapper to be job based)
-=======
-	go func() {
-		// TODO need to process the vmkfstools stderr(probably) and to write the
-		// progress to a file, and then continuously read and report on the channel
-		progress <- 100
-		quit <- nil
-	}()
-	return nil
->>>>>>> 9c61b996 (certificate tool phase 1)
 }
