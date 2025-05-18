@@ -102,8 +102,5 @@ all: create-vm test-xcopy ## Run all steps in sequence.
 
 clean: ## Clean built artifacts.
 	@rm -f $(BINARY)
-	@#$(KUBECTL) delete vspherexcopyvolumepopulators.forklift.konveyor.io -n $(POD_NAMESPACE) test-xcopy
-	@$(KUBECTL) delete pods --all -n $(POD_NAMESPACE)
-	@#$(KUBECTL) patch pvc xcopy-pvc -n $(POD_NAMESPACE) -p '{"metadata":{"finalizers":[]}}' --type=merge
-	@$(KUBECTL) delete pvc --all -n $(POD_NAMESPACE)
+	@#$(KUBECTL) delete namespace $(POD_NAMESPACE)
 
