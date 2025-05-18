@@ -44,10 +44,10 @@ var prepare = &cobra.Command{
 			panic(err)
 		}
 
-		if err := k8s.EnsureNamespace(clientset, testNamespace); err != nil {
+		if err := k8s.EnsureNamespace(clientset, podNamespace); err != nil {
 			panic(err)
 		}
-		if err := k8s.EnsureServiceAccount(clientset, testNamespace, saName); err != nil {
+		if err := k8s.EnsureServiceAccount(clientset, podNamespace, saName); err != nil {
 			panic(err)
 		}
 
@@ -62,7 +62,7 @@ var prepare = &cobra.Command{
 			panic(err)
 		}
 
-		clusterRoleBinding := k8s.NewClusterRoleBinding(testNamespace, roleName, saName)
+		clusterRoleBinding := k8s.NewClusterRoleBinding(podNamespace, roleName, saName)
 		if err := k8s.EnsureClusterRoleBinding(clientset, clusterRoleBinding); err != nil {
 			panic(err)
 		}
