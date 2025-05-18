@@ -27,7 +27,8 @@ $(foreach var,$(REQUIRED_VARS),\
   $(if $(value $(var)),,$(error Environment variable $(var) is required)))
 
 VM_NAME      ?= xcopy-popualtor-compliance-test-vm
-DATA_STORE   ?= eco-iscsi-ds1
+DATA_CENTER  ?= $(shell yq e '.data-center' $(CONFIG_FILE))
+DATA_STORE   ?= $(shell yq e '.data-store' $(CONFIG_FILE))
 BINARY = certificate-tool
 VMDK_PATH ?= "assets/cloudinit/fedora.vmdk"
 .PHONY: help build prepare test-xcopy all clean
@@ -71,7 +72,7 @@ create-vm: build ## Run certificate-tool create-vm subcommand.
 		--vsphere-user          "$(VSPHERE_USER)" \
 		--vsphere-password      "$(VSPHERE_PASSWORD)" \
 		--vsphere-url           "$(VSPHERE_URL)/sdk" \
-		--data-center           "Eco-Datacenter" \
+		--data-center           "$(DATA_CENTER)" \
 		--local-vmdk-path        $(VMDK_PATH) \
 		--data-store             $(DATA_STORE)
 
@@ -96,6 +97,6 @@ clean: ## Clean built artifacts.
 		--vsphere-user          "$(VSPHERE_USER)" \
 		--vsphere-password      "$(VSPHERE_PASSWORD)" \
 		--vsphere-url           "$(VSPHERE_URL)/sdk" \
-		--data-center           "Eco-Datacenter" \
-		--data-store             $(DATA_STORE)
+		--data-center           "$(DATA_CENTER)" \
+		--data-store            "$(DATA_STORE)"
 
