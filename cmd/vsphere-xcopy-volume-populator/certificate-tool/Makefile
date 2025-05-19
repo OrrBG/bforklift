@@ -37,6 +37,7 @@ VM_NAME      ?= xcopy-popualtor-compliance-test-vm
 DATA_STORE   ?= eco-iscsi-ds1
 BINARY = certificate-tool
 VMDK_PATH ?= "assets/cloudinit/fedora.vmdk"
+NAMESPACE_ID := $(shell uuidgen)
 .PHONY: help build prepare test-xcopy all clean
 
 help: ## Display this help.
@@ -72,7 +73,8 @@ prepare: check-tools build ## Run certificate-tool create-env subcommand.
 			--storage-url           "$(STORAGE_URL)" \
 			--vsphere-user          "$(VSPHERE_USER)" \
 			--vsphere-password      "$(VSPHERE_PASSWORD)" \
-			--vsphere-url           "$(VSPHERE_URL)"
+			--vsphere-url           "$(VSPHERE_URL)" \
+			--namespace-id			"$(NAMESPACE_ID)"
 
 
 
@@ -95,7 +97,8 @@ test-xcopy: build #prepare
 		--storage-vendor-product     	$(STORAGE_VENDOR) \
 		--storage-class-name 	$(STORAGE_CLASS_NAME) \
 		--test-populator-image  $(TEST_POPULATOR_IMAGE) \
-		--plan-yaml-path  "assets/manifests/examples/example-test-plan.yaml"
+		--plan-yaml-path  "assets/manifests/examples/example-test-plan.yaml" \
+		--namespace-id			"$(NAMESPACE_ID)"
 
 
 all: create-vm test-xcopy ## Run all steps in sequence.
@@ -109,5 +112,5 @@ clean: ## Clean built artifacts.
 		--vsphere-password      "$(VSPHERE_PASSWORD)" \
 		--vsphere-url           "$(VSPHERE_URL)/sdk" \
 		--data-center           "Eco-Datacenter" \
-		--data-store             $(DATA_STORE)
+		--data-store            "$(DATA_STORE)"
 

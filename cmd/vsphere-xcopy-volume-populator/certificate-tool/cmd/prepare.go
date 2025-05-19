@@ -11,14 +11,14 @@ import (
 )
 
 var (
-	testNamespace  				string
-	testImageLabel 				string
-	testLabels     				string
-	controllerPath 				string
-	saName         				string
-	roleName       				string
-	secretName     				string
-	storageSkipSSLVerification  string
+	testNamespace              string
+	testImageLabel             string
+	testLabels                 string
+	controllerPath             string
+	saName                     string
+	roleName                   string
+	secretName                 string
+	storageSkipSSLVerification string
 )
 
 var prepare = &cobra.Command{
@@ -42,6 +42,12 @@ var prepare = &cobra.Command{
 		if err != nil {
 			panic(err)
 		}
+
+		testNamespace = testNamespace + "-" + namespaceId
+		saName = saName + "-" + namespaceId
+		roleName = roleName + "-" + namespaceId
+		testLabels = testLabels + "-" + namespaceId
+		secretName = secretName + "-" + namespaceId
 
 		if err := k8s.EnsureNamespace(clientset, testNamespace); err != nil {
 			panic(err)
@@ -105,4 +111,5 @@ func init() {
 	prepare.Flags().StringVar(&testLabels, "test-labels", "vsphere-populator", "Labels for test objects")
 	prepare.Flags().StringVar(&secretName, "secret-name", "populator-secret", "Name of the secret to create")
 	prepare.Flags().StringVar(&storageSkipSSLVerification, "storage-skip-ssl-verification", "true", "skip the storage ssl verification")
+	prepare.Flags().StringVar(&namespaceId, "namespace-id", "1", "namespace id used to identify resources in the namespace")
 }
