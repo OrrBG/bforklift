@@ -1,11 +1,8 @@
 package cmd
 
 import (
-	"certificate-tool/pkg/config" // Import the new config package
-	"os"
-	"time" // Import time package for Duration parsing
-
 	"github.com/spf13/cobra"
+	"os"
 )
 
 // RootCmd represents the base command
@@ -16,8 +13,10 @@ var RootCmd = &cobra.Command{
 }
 
 var (
-	cfgFile   string         // New flag for the configuration file
-	appConfig *config.Config // Holds the loaded configuration
+	kubeconfigPath                           string
+	vsphereUser, vspherePassword, vsphereUrl string
+	storageUrl, storageUser, storagePassword string
+	storageClassName                         string
 )
 
 // Execute executes the root command.
@@ -26,43 +25,51 @@ func Execute() error {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig) // Initialize config before any command runs
-
 	RootCmd.AddCommand(
 		prepare,
 		createVmCmd,
 		createTestCmd,
-		destroyVMCmd, // Add destroyVMCmd to RootCmd
 	)
 
-	// New persistent flag for the configuration file
 	RootCmd.PersistentFlags().StringVar(
-		&cfgFile,
-		"config", config.DefaultConfigPath(), // Set default path for config file
-		"Path to the YAML configuration file",
+		&kubeconfigPath,
+		"kubeconfig", os.Getenv("KUBECONFIG"),
+		"Path to the kubeconfig file (or from $KUBECONFIG)",
 	)
-}
+	RootCmd.PersistentFlags().StringVar(
+		&vsphereUser,
+		"vsphere-user", os.Getenv("VSPHERE_USER"),
+		"vSphere username (or from $VSPHERE_USER)",
+	)
+	RootCmd.PersistentFlags().StringVar(
+		&vspherePassword,
+		"vsphere-password", os.Getenv("VSPHERE_PASSWORD"),
+		"vSphere password (or from $VSPHERE_PASSWORD)",
+	)
+	RootCmd.PersistentFlags().StringVar(
+		&vsphereUrl,
+		"vsphere-url", os.Getenv("VSPHERE_URL"),
+		"vSphere/Govmomi endpoint (or from $VSPHERE_URL)",
+	)
 
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	var err error
-	appConfig, err = config.LoadConfig(cfgFile)
-	if err != nil {
-		if os.IsNotExist(err) && cfgFile == config.DefaultConfigPath() {
-			panic("Failed to load configuration: " + err.Error())
-		}
-	}
-}
-
-// Helper function to parse duration from string
-func parseDuration(s string, defaultDuration time.Duration) time.Duration {
-	if s == "" {
-		return defaultDuration
-	}
-	d, err := time.ParseDuration(s)
-	if err != nil {
-		// Log the error or handle it as appropriate, using default for now
-		return defaultDuration
-	}
-	return d
+	RootCmd.PersistentFlags().StringVar(
+		&storageUser,
+		"storage-user", os.Getenv("STORAGE_USER"),
+		"Storage system username (or from $STORAGE_USER)",
+	)
+	RootCmd.PersistentFlags().StringVar(
+		&storagePassword,
+		"storage-password", os.Getenv("STORAGE_PASSWORD"),
+		"Storage system password (or from $STORAGE_PASSWORD)",
+	)
+	RootCmd.PersistentFlags().StringVar(
+		&storageUrl,
+		"storage-url", os.Getenv("STORAGE_URL"),
+		"Storage system endpoint URL (or from $STORAGE_URL)",
+	)
+	RootCmd.PersistentFlags().StringVar(
+		&storageClassName,
+		"storage-class-name", os.Getenv("STORAGE_CLASS_NAME"),
+		"Storage class name- block",
+	)
 }

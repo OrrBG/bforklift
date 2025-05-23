@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"certificate-tool/internal/k8s"
+	// appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/klog/v2"
 
 	"github.com/spf13/cobra"
@@ -9,14 +10,31 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+var (
+	testNamespace              string
+	testImageLabel             string
+	testLabels                 string
+	controllerPath             string
+	saName                     string
+	roleName                   string
+	secretName                 string
+	storageSkipSSLVerification string
+)
+
 var prepare = &cobra.Command{
 	Use:   "prepare",
 	Short: "Creates the controller environment (deployment, clusterRole and role bindings) ",
 	Run: func(cmd *cobra.Command, args []string) {
 		klog.Infof("Creating controller environment...")
-
-		// Use values from appConfig
-		config, err := clientcmd.BuildConfigFromFlags("", appConfig.Kubeconfig)
+		// params := &k8s.TemplateParams{
+		// 	TestNamespace:      testNamespace,
+		// 	TestImageLabel:     testImageLabel,
+		// 	TestLabels:         testLabels,
+		// 	TestPopulatorImage: testPopulatorImage,
+		// 	PodNamespace:       podNamespace,
+		// 	StorageClassName:   storageClassName,
+		// }
+		config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		if err != nil {
 			panic(err)
 		}
@@ -25,13 +43,15 @@ var prepare = &cobra.Command{
 			panic(err)
 		}
 
-		if err := k8s.EnsureNamespace(clientset, appConfig.TestNamespace); err != nil {
+		testNamespace = testNamespace + "-" + namespaceId
+		roleName = roleName + "-" + namespaceId
+		testLabels = testLabels + "-" + namespaceId
+		secretName = secretName + "-" + namespaceId
+
+		if err := k8s.EnsureNamespace(clientset, testNamespace); err != nil {
 			panic(err)
 		}
-		saName := "populator" // These seem to be fixed based on your original code
-		roleName := "populator"
-
-		if err := k8s.EnsureServiceAccount(clientset, appConfig.TestNamespace, saName); err != nil {
+		if err := k8s.EnsureServiceAccount(clientset, testNamespace, saName); err != nil {
 			panic(err)
 		}
 
@@ -40,45 +60,38 @@ var prepare = &cobra.Command{
 			panic(err)
 		}
 
-		clusterRoleBinding := k8s.NewClusterRoleBinding(appConfig.TestNamespace, roleName, saName)
+		clusterRoleBinding := k8s.NewClusterRoleBinding(testNamespace, roleName, saName)
 		if err := k8s.EnsureClusterRoleBinding(clientset, clusterRoleBinding); err != nil {
 			panic(err)
 		}
 
+		// cobra.CheckErr(k8s.ApplyResource[appsv1.Deployment](
+		// 	controllerPath, params, "${", "}",
+		// 	k8s.EnsureDeployment, clientset, testNamespace,
+		// ))
+
 		klog.Infof("Controller namespace created successfully.")
-		// Redundant EnsureNamespace and EnsureServiceAccount calls. Keeping them as per original, but they are duplicates.
-		if err := k8s.EnsureNamespace(clientset, appConfig.TestNamespace); err != nil {
+		if err := k8s.EnsureNamespace(clientset, testNamespace); err != nil {
 			panic(err)
 		}
-		if err := k8s.EnsureServiceAccount(clientset, appConfig.TestNamespace, saName); err != nil {
+		if err := k8s.EnsureServiceAccount(clientset, testNamespace, saName); err != nil {
 			panic(err)
 		}
-		populatorRole := k8s.NewRole(roleName, appConfig.TestNamespace)
+		populatorRole := k8s.NewRole(roleName, testNamespace)
 		if err := k8s.EnsureRole(clientset, populatorRole); err != nil {
 			panic(err)
 		}
 
-		populatorRoleBinding := k8s.NewRoleBinding(appConfig.TestNamespace, saName, roleName)
+		populatorRoleBinding := k8s.NewRoleBinding(testNamespace, saName, roleName)
 		if err := k8s.EnsureRoleBinding(clientset, populatorRoleBinding); err != nil {
 			panic(err)
 		}
 
-		// This EnsureRole call is also a duplicate of the one above.
 		if err := k8s.EnsureRole(clientset, populatorRole); err != nil {
 			panic(err)
 		}
-		klog.Infof("Ensuring secret...")
-		Secret := k8s.NewPopulatorSecret(
-			appConfig.TestNamespace,
-			appConfig.StorageSkipSSLVerification,
-			appConfig.StoragePassword,
-			appConfig.StorageUser,
-			appConfig.StorageURL,
-			appConfig.VspherePassword,
-			appConfig.VsphereUser,
-			appConfig.VsphereURL,
-			appConfig.SecretName,
-		)
+		klog.Infof("Ensuring secret:", kubeconfigPath)
+		Secret := k8s.NewPopulatorSecret(testNamespace, storagePassword, storageUser, storageUrl, vspherePassword, vsphereUser, vsphereUrl, storageSkipSSLVerification, secretName)
 		if err := k8s.EnsureSecret(clientset, Secret); err != nil {
 			panic(err)
 		}
@@ -88,4 +101,14 @@ var prepare = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(prepare)
+	prepare.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "Path to kubeconfig")
+	prepare.Flags().StringVar(&testNamespace, "test-namespace", "vsphere-populator-test", "Testing namespace")
+	prepare.Flags().StringVar(&controllerPath, "controller-path", "assets/manifests/xcopy-setup/controller.yaml", "Controller manifest (Go template)")
+	prepare.Flags().StringVar(&saName, "service-account", "populator", "ServiceAccount name to create/use")
+	prepare.Flags().StringVar(&roleName, "cluster-role-name", "populator", "ClusterRole name to create/use")
+	prepare.Flags().StringVar(&testImageLabel, "test-image-label", "0.38", "Image tag for test pods")
+	prepare.Flags().StringVar(&testLabels, "test-labels", "vsphere-populator", "Labels for test objects")
+	prepare.Flags().StringVar(&secretName, "secret-name", "populator-secret", "Name of the secret to create")
+	prepare.Flags().StringVar(&storageSkipSSLVerification, "storage-skip-ssl-verification", "true", "skip the storage ssl verification")
+	prepare.Flags().StringVar(&namespaceId, "namespace-id", "1", "namespace id used to identify resources in the namespace")
 }

@@ -74,9 +74,9 @@ func ensureVmdk(downloadVmdkURL, localVmdkPath string) (string, error) {
 	fmt.Printf("the downlaodble dest %v\n", dest)
 	pwd, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return "",err
 	}
-	return path.Join(pwd, dest), nil
+	return path.Join(pwd,dest), nil
 }
 func fileExist(ctx context.Context, ds *object.Datastore, fullPath string) (bool, error) {
 	_, err := ds.Stat(ctx, fullPath)
@@ -388,12 +388,9 @@ func CreateVM(vmName, vsphereUrl, vsphereUser, vspherePassword, dataCenter,
 			return "", err
 		}
 	}
-
-	vmFileName := filepath.Base(localVmdkPath)
 	if vm != nil {
 		log.Println("VM already exists")
-		remoteVmdkPath := fmt.Sprintf("[%s] %s/%s", ds.Name(), vmName, vmFileName)
-		return remoteVmdkPath, nil
+		return "", nil
 	}
 
 	vmdkToUpload, err := ensureVmdk(downloadVmdkURL, localVmdkPath)

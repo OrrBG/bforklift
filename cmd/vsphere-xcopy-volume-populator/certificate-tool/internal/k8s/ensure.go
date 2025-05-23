@@ -200,7 +200,7 @@ func EnsurePersistentVolumeClaim(clientset *kubernetes.Clientset, namespace stri
 //}
 
 // EnsurePopulatorPod creates or reapplies a populator Pod mounting its PVC.
-func EnsurePopulatorPod(ctx context.Context, clientset *kubernetes.Clientset, namespace, podName, image, testLabel string, vm utils.VM, storageVendorProduct, pvcName string) error {
+func EnsurePopulatorPod(ctx context.Context, clientset *kubernetes.Clientset, namespace, podName, image, testLabel string, vm utils.VM, storageVendorProduct, pvcName, secretName string) error {
 	pods := clientset.CoreV1().Pods(namespace)
 	_, err := pods.Get(ctx, podName, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
@@ -223,7 +223,7 @@ func EnsurePopulatorPod(ctx context.Context, clientset *kubernetes.Clientset, na
 					ImagePullPolicy: corev1.PullAlways,
 					VolumeDevices:   []corev1.VolumeDevice{{Name: "target", DevicePath: "/dev/block"}},
 					Ports:           []corev1.ContainerPort{{Name: "metrics", ContainerPort: 8443, Protocol: corev1.ProtocolTCP}},
-					EnvFrom:         []corev1.EnvFromSource{{SecretRef: &corev1.SecretEnvSource{corev1.LocalObjectReference{Name: "populator-secret"}, &mustBeDefined}}},
+					EnvFrom:         []corev1.EnvFromSource{{SecretRef: &corev1.SecretEnvSource{corev1.LocalObjectReference{Name: secretName}, &mustBeDefined}}},
 					Args: []string{
 						fmt.Sprintf("--source-vmdk=%s", vm.VmdkPath),
 						fmt.Sprintf("--target-namespace=%s", namespace),

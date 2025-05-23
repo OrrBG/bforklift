@@ -10,33 +10,35 @@ GOBIN ?= $(GOPATH)/bin
 DEFAULT_KUBECTL = $(GOBIN)/kubectl
 KUBECTL ?= /usr/bin/kubectl
 
-# No longer need to use yq to read individual values for direct command line flags
-# as the Go application will read the config file directly.
-# These variables are kept if you use them elsewhere in the Makefile for other purposes,
-# but they won't be passed as flags to the Go binary anymore for prepare/create-vm/test-xcopy.
 
-# TEST_NAMESPACE = $(shell yq e '.test-namespace' $(CONFIG_FILE))
-# STORAGE_VENDOR = $(shell yq e '.storage-vendor' $(CONFIG_FILE))
-# KUBECONFIG = $(shell yq e '.kubeconfig' $(CONFIG_FILE))
-# TEST_IMAGE_LABEL = $(shell yq e '.test-image-label' $(CONFIG_FILE))
-# TEST_LABELS = $(shell yq e '.test-labels' $(CONFIG_FILE))
-# TEST_POPULATOR_IMAGE = $(shell yq e '.test-populator-image' $(CONFIG_FILE))
-# CONTROLLER_PATH = $(shell yq e '.controller-path' $(CONFIG_FILE))
-# STORAGE_CLASS_NAME = $(shell yq e '.storage-class-name' $(CONFIG_FILE))
-# SECRET_NAME = $(shell yq e '.secret-name' $(CONFIG_FILE))
+TEST_NAMESPACE = $(shell yq e '.test-namespace' $(CONFIG_FILE))
+STORAGE_VENDOR   = $(shell yq e '.storage-vendor' $(CONFIG_FILE))
+KUBECONFIG       = $(shell yq e '.kubeconfig' $(CONFIG_FILE))
+TEST_IMAGE_LABEL = $(shell yq e '.test-image-label' $(CONFIG_FILE))
+TEST_LABELS      = $(shell yq e '.test-labels' $(CONFIG_FILE))
+TEST_POPULATOR_IMAGE = $(shell yq e '.test-populator-image' $(CONFIG_FILE))
+CONTROLLER_PATH  = $(shell yq e '.controller-path' $(CONFIG_FILE))
+STORAGE_CLASS_NAME  = $(shell yq e '.storage-class-name' $(CONFIG_FILE))
+SECRET_NAME =  $(shell yq e '.secret-name' $(CONFIG_FILE))
 
-# REQUIRED_VARS are no longer needed since parameters are read from the config file.
-# You might keep this for other checks if needed, but for the Go tool's arguments, it's obsolete.
-# REQUIRED_VARS := STORAGE_USERNAME STORAGE_PASSWORD STORAGE_HOSTNAME GOVMOMI_USERNAME GOVMOMI_PASSWORD GOVMOMI_HOSTNAME STORAGE_CLASS_NAME
-# $(foreach var,$(REQUIRED_VARS),\
-#   $(if $(value $(var)),,$(error Environment variable $(var) is required)))
+REQUIRED_VARS := STORAGE_USER STORAGE_PASSWORD STORAGE_URL VSPHERE_USER VSPHERE_PASSWORD VSPHERE_URL STORAGE_CLASS_NAME
 
-# VM_NAME and DATA_STORE can also be read from config, or kept for Makefile specific overrides
-VM_NAME ?= $(shell yq e '.vm-name' $(CONFIG_FILE))
-DATA_STORE ?= $(shell yq e '.data-store' $(CONFIG_FILE))
+$(foreach var,$(REQUIRED_VARS),\
+  $(if $(value $(var)),,$(error Environment variable $(var) is required)))
+
+
+# TODO: pin the exact commit
+OPENSTACK_POPULATOR ?= https://raw.githubusercontent.com/kubev2v/forklift/main/operator/config/crd/bases/forklift.konveyor.io_ovirtvolumepopulators.yaml
+OVIRT_POPULATOR     ?= https://raw.githubusercontent.com/kubev2v/forklift/main/operator/config/crd/bases/forklift.konveyor.io_openstackvolumepopulators.yaml
+VSPHERE_POPULATOR   ?= https://raw.githubusercontent.com/kubev2v/forklift/main/operator/config/crd/bases/forklift.konveyor.io_vspherexcopyvolumepopulators.yaml
+CLUSTER_ROLE   ?= https://raw.githubusercontent.com/kubev2v/forklift/main/operator/config/rbac/populator-controller/role.yaml
+ROLE_BINDING   ?= https://raw.githubusercontent.com/kubev2v/forklift/main/operator/config/rbac/populator-controller/role_binding.yaml
+VM_NAME      ?= xcopy-popualtor-compliance-test-vm
+DATA_STORE   ?= eco-iscsi-ds1
 BINARY = certificate-tool
-VMDK_PATH ?= $(shell yq e '.local-vmdk-path' $(CONFIG_FILE)) # Read from config if it's there
-.PHONY: help build prepare test-xcopy all clean create-vm destroy-vm
+VMDK_PATH ?= "assets/cloudinit/fedora.vmdk"
+NAMESPACE_ID := $(shell uuidgen)
+.PHONY: help build prepare test-xcopy all clean
 
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} \
@@ -51,27 +53,63 @@ check-tools:
 build: ## Build the certificate-tool CLI binary.
 	go build -o $(BINARY) .
 
-prepare: check-tools build ## Run certificate-tool prepare subcommand.
+prepare: check-tools build ## Run certificate-tool create-env subcommand.
+	$(KUBECTL) apply -f $(OPENSTACK_POPULATOR)
+	$(KUBECTL) apply -f $(OVIRT_POPULATOR)
+	$(KUBECTL) apply -f $(VSPHERE_POPULATOR)
+	$(KUBECTL) apply -f $(CLUSTER_ROLE)
+	$(KUBECTL) apply -f $(ROLE_BINDING)
 	@echo "running prepare..."
-	@./$(BINARY) prepare --config "$(CONFIG_FILE)" # Pass the config file path
+	@./$(BINARY) prepare \
+			 --kubeconfig            "$(KUBECONFIG)" \
+			--test-namespace        "$(TEST_NAMESPACE)" \
+			--test-image-label      "$(TEST_IMAGE_LABEL)" \
+			--test-labels           "$(TEST_LABELS)" \
+			--controller-path       "$(CONTROLLER_PATH)" \
+			--test-image-label      "$(TEST_IMAGE_LABEL)" \
+			--storage-user          "$(STORAGE_USER)" \
+			--storage-password      "$(STORAGE_PASSWORD)" \
+			--storage-url           "$(STORAGE_URL)" \
+			--vsphere-user          "$(VSPHERE_USER)" \
+			--vsphere-password      "$(VSPHERE_PASSWORD)" \
+			--vsphere-url           "$(VSPHERE_URL)" \
+			--namespace-id			"$(NAMESPACE_ID)"
+
+
 
 create-vm: build ## Run certificate-tool create-vm subcommand.
 	@echo "creating vm..."
-	./$(BINARY) create-vm --config "$(CONFIG_FILE)" # Pass the config file path
+	./$(BINARY) create-vm \
+		--vm-name               $(VM_NAME) \
+		--vsphere-user          "$(VSPHERE_USER)" \
+		--vsphere-password      "$(VSPHERE_PASSWORD)" \
+		--vsphere-url           "$(VSPHERE_URL)/sdk" \
+		--data-center           "Eco-Datacenter" \
+		--local-vmdk-path        $(VMDK_PATH) \
+		--data-store             $(DATA_STORE)
 
-test-xcopy: build #prepare
+test-xcopy: build prepare
 	@echo "Running test-xcopy..."
 	@./$(BINARY) test-xcopy \
-		--config "$(CONFIG_FILE)" \
-		--plan-yaml-path "assets/manifests/examples/example-test-plan.yaml" # Pass the config file and the plan file
-
-destroy-vm: build
-	@echo "destroying vm..."
-	./$(BINARY) destroy-vm --config "$(CONFIG_FILE)" # Pass the config file path
+		--kubeconfig         	$(KUBECONFIG) \
+		--pvc-yaml           	"assets/manifests/xcopy-setup/xcopy-pvc.yaml"\
+		--storage-vendor-product     	$(STORAGE_VENDOR) \
+		--storage-class-name 	$(STORAGE_CLASS_NAME) \
+		--test-populator-image  $(TEST_POPULATOR_IMAGE) \
+		--plan-yaml-path  "assets/manifests/examples/example-test-plan.yaml" \
+		--namespace-id			"$(NAMESPACE_ID)"
 
 
 all: create-vm test-xcopy ## Run all steps in sequence.
 
 clean: ## Clean built artifacts.
 	@rm -f $(BINARY)
-	@$(KUBECTL) delete namespace $(shell yq e '.test-namespace' $(CONFIG_FILE))
+	@$(KUBECTL) delete namespace $(POD_NAMESPACE)
+	./$(BINARY) destroy-vm \
+		--vm-name 				$(VM_NAME) \
+		--vsphere-user          "$(VSPHERE_USER)" \
+		--vsphere-password      "$(VSPHERE_PASSWORD)" \
+		--vsphere-url           "$(VSPHERE_URL)/sdk" \
+		--data-center           "Eco-Datacenter" \
+		--data-store            "$(DATA_STORE)"
+

@@ -2,69 +2,55 @@ package cmd
 
 import (
 	"certificate-tool/internal/testplan"
-	"context"
-	"fmt"
 	"os"
 
+	// "certificate-tool/internal/utils/yaml"
+	"context"
+	"fmt"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 var (
-	planYamlPath string // This remains as it's the second parameter
+	pvcYamlPath          string
+	storageVendorProduct string
+	planYamlPath         string
+	testPopulatorImage   string
+	namespaceId          string
 )
 
 var createTestCmd = &cobra.Command{
 	Use:   "test-xcopy",
 	Short: "Creates the test environment: PVC and CR instance",
 	Run: func(cmd *cobra.Command, args []string) {
-		data, err := os.ReadFile(planYamlPath) // planYamlPath remains a flag
+		data, err := os.ReadFile(planYamlPath)
 		if err != nil {
-			fmt.Printf("failed reading plan file: %v\n", err)
-			os.Exit(1)
+			fmt.Printf("failed reading plan file: %w", err)
 		}
 		tp, err := testplan.Parse(data)
 		if err != nil {
-			fmt.Printf("failed parsing plan: %v\n", err)
-			os.Exit(1)
+			fmt.Printf("failed parsing plan: %w\n", err)
 		}
 
-		// Use kubeconfig from appConfig
-		config, err := clientcmd.BuildConfigFromFlags("", appConfig.Kubeconfig)
+		config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		if err != nil {
-			fmt.Printf("kubeconfig error: %v\n", err)
-			os.Exit(1)
+			fmt.Printf("kubeconfig error: %w", err)
 		}
 		clientset, err := kubernetes.NewForConfig(config)
 		if err != nil {
-			fmt.Printf("k8s client error: %v\n", err)
-			os.Exit(1)
+			fmt.Printf("k8s client error: %w", err)
 		}
-		tp.ClientSet = clientset
-		tp.StorageClass = appConfig.StorageClassName   // Use StorageClassName from appConfig
-		tp.Namespace = appConfig.TestNamespace         // Use TestNamespace from appConfig
-		tp.VSphereURL = appConfig.VsphereURL           // Use VsphereURL from appConfig
-		tp.VSphereUser = appConfig.VsphereUser         // Use VsphereUser from appConfig
-		tp.VSpherePassword = appConfig.VspherePassword // Use VspherePassword from appConfig
-		tp.Datacenter = appConfig.DataCenter           // Use DataCenter from appConfig
-		tp.Datastore = appConfig.DataStore             // Use DataStore from appConfig
-		tp.ResourcePool = appConfig.Pool               // Use Pool from appConfig
-		tp.VmdkDownloadURL = appConfig.DownloadVmdkURL // Use DownloadVmdkURL from appConfig
-		tp.LocalVmdkPath = appConfig.LocalVmdkPath     // Use LocalVmdkPath from appConfig
-		tp.IsoPath = appConfig.IsoPath                 // Use IsoPath from appConfig
-		tp.AppConfig = appConfig
+
 		ctx := context.Background()
-		if err := tp.Start(ctx, appConfig.TestPopulatorImage, appConfig.PvcYamlPath); err != nil {
-			fmt.Printf("test plan execution failed: %v\n", err)
-			os.Exit(1)
+		if err := tp.Start(ctx, clientset, testNamespace, namespaceId, testPopulatorImage, storageClassName, pvcYamlPath, secretName); err != nil {
+			fmt.Printf("test plan execution failed: %w", err)
 		}
 
 		// Output results
 		out, err := tp.FormatOutput()
 		if err != nil {
-			fmt.Printf("failed formatting output: %v\n", err)
-			os.Exit(1)
+			fmt.Printf("failed formatting output: %w", err)
 		}
 		fmt.Print(string(out))
 
@@ -74,5 +60,11 @@ var createTestCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(createTestCmd)
-	createTestCmd.Flags().StringVar(&planYamlPath, "plan-yaml-path", "assets/manifests/examples/example-test-plan.yaml", "Path to the test plan YAML file")
+	createTestCmd.Flags().StringVar(&pvcYamlPath, "pvc-yaml", "assets/manifests/xcopy-setup/xcopy-pvc.yaml", "Path to the PVC YAML file")
+	createTestCmd.Flags().StringVar(&planYamlPath, "plan-yaml-path", "assets/manifests/examples/example-test-plan.yaml", "Path to the PVC YAML file")
+	createTestCmd.Flags().StringVar(&storageVendorProduct, "storage-vendor-product", "cr.yaml", "Name of storage vendor product to use")
+	createTestCmd.Flags().StringVar(&testPopulatorImage, "test-populator-image", "quay.io/rgolangh/vsphere-xcopy-volume-populator:devel", "Name of storage vendor to use")
+	createTestCmd.Flags().StringVar(&testNamespace, "test-namespace", "vsphere-populator-test", "namespace to run the tests in")
+	createTestCmd.Flags().StringVar(&namespaceId, "namespace-id", "1", "namespace id used to identify resources in the namespace")
+	createTestCmd.Flags().StringVar(&secretName, "secret-name", "populator-secret", "Name of the populator secret")
 }

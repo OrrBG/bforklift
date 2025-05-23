@@ -2,36 +2,19 @@ package testplan
 
 import (
 	"certificate-tool/internal/utils"
-	"certificate-tool/pkg/config"
-	"certificate-tool/pkg/storage"
 	"context"
 	"fmt"
-	"time"
-
 	"gopkg.in/yaml.v3"
+	"time"
 
 	"k8s.io/client-go/kubernetes"
 )
 
 // TestPlan aggregates multiple test cases under a VM image.
 type TestPlan struct {
-	VMImage              string                `yaml:"image"`
-	StorageVendorProduct string                `yaml:"storageVendorProduct"`
-	TestCases            []TestCase            `yaml:"tests"`
-	Namespace            string                `yaml:"-"`
-	StorageClass         string                `yaml:"-"`
-	ClientSet            *kubernetes.Clientset `yaml:"-"`
-	VSphereURL           string                `yaml:"-"`
-	VSphereUser          string                `yaml:"-"`
-	VSpherePassword      string                `yaml:"-"`
-	Datacenter           string                `yaml:"-"`
-	Datastore            string                `yaml:"-"`
-	ResourcePool         string                `yaml:"-"`
-	// New fields for VMDK download URL, local VMDK path, and ISO path
-	VmdkDownloadURL string
-	LocalVmdkPath   string
-	IsoPath         string
-	AppConfig       *config.Config
+	Image                string     `yaml:"image"`
+	StorageVendorProduct string     `yaml:"storageVendorProduct"`
+	TestCases            []TestCase `yaml:"tests"`
 }
 
 // Parse unmarshals YAML data into a TestPlan.
@@ -44,36 +27,15 @@ func Parse(yamlData []byte) (*TestPlan, error) {
 }
 
 // Start runs all test cases sequentially, creating PVCs and pods, recording results.
-func (tp *TestPlan) Start(ctx context.Context, podImage, pvcYamlPath string) error {
+func (tp *TestPlan) Start(ctx context.Context, clientset *kubernetes.Clientset, namespace, namespaceId, podImage, storageClassName, pvcYamlPath, secretName string) error {
 	for i := range tp.TestCases {
 		tc := &tp.TestCases[i]
-		tc.ClientSet = tp.ClientSet
-		tc.Namespace = tp.Namespace
-		tc.VSphereURL = tp.VSphereURL
-		tc.VSphereUser = tp.VSphereUser
-		tc.VSpherePassword = tp.VSpherePassword
-		tc.Datacenter = tp.Datacenter
-		tc.Datastore = tp.Datastore
-		tc.ResourcePool = tp.ResourcePool
-		tc.VmdkDownloadURL = tp.VmdkDownloadURL
-		tc.LocalVmdkPath = tp.LocalVmdkPath
-		tc.IsoPath = tp.IsoPath
-		tc.StorageClass = tp.StorageClass
-
 		start := time.Now()
-		if err := tc.Run(ctx, podImage, tp.VMImage, pvcYamlPath, tp.StorageVendorProduct); err != nil {
-			tc.Results = utils.TestResult{
-				Success:       false,
-				ElapsedTime:   int64(time.Since(start).Seconds()),
-				FailureReason: err.Error(),
-			}
+		if err := tc.Run(ctx, clientset, namespace, namespaceId, podImage, tp.Image, storageClassName, pvcYamlPath, tp.StorageVendorProduct, secretName); err != nil {
+			tc.Results = utils.TestResult{false, int64(time.Since(start).Seconds()), err.Error()}
 			return fmt.Errorf("test %s failed: %w", tc.Name, err)
 		}
-		tc.Results = utils.TestResult{
-			Success:       true,
-			ElapsedTime:   int64(time.Since(start).Seconds()),
-			FailureReason: "",
-		}
+		tc.Results = utils.TestResult{true, int64(time.Since(start).Seconds()), ""}
 	}
 	return nil
 }
@@ -83,7 +45,7 @@ func (tp *TestPlan) FormatOutput() ([]byte, error) {
 	output := struct {
 		Metadata struct {
 			Storage struct {
-				storage.Storage
+				Name                 string `yaml:"name"`
 				StorageVendorProduct string `yaml:"storageVendorProduct"`
 				ConnectionType       string `yaml:"connectionType"`
 			} `yaml:"storage"`
@@ -91,23 +53,11 @@ func (tp *TestPlan) FormatOutput() ([]byte, error) {
 		Image string     `yaml:"image"`
 		Tests []TestCase `yaml:"tests"`
 	}{
-		Image: tp.VMImage,
+		Image: tp.Image,
 		Tests: tp.TestCases,
 	}
-
-	c := storage.StorageCredentials{
-		Hostname:      tp.AppConfig.StorageURL,
-		Username:      tp.AppConfig.StorageUser,
-		Password:      tp.AppConfig.StoragePassword,
-		SSLSkipVerify: tp.AppConfig.StorageSkipSSLVerification == "true",
-		VendorProduct: tp.StorageVendorProduct,
-	}
-	storageInfo, err := storage.StorageInfo(c)
-	if err != nil {
-		return nil, err
-	}
-	output.Metadata.Storage.Storage = storageInfo
-	output.Metadata.Storage.StorageVendorProduct = tp.StorageVendorProduct
+	output.Metadata.Storage.Name = "TODO"
+	output.Metadata.Storage.StorageVendorProduct = "TODO"
 	output.Metadata.Storage.ConnectionType = "TODOTODOOOOTODOTODDO"
 	return yaml.Marshal(output)
 }

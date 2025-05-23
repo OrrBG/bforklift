@@ -57,12 +57,12 @@ A command-line utility to automate VM creation, Kubernetes populator setup, and 
 ```
 3. **Ensure these environment variables are set (either in .env or your shell):**
 ```bash
-   STORAGE_USERNAME
+   STORAGE_USER
    STORAGE_PASSWORD
-   STORAGE_HOSTNAME
-   GOVMOMI_USERNAME
-   GOVMOMI_PASSWORD
-   GOVMOMI_HOSTNAME
+   STORAGE_URL
+   VSPHERE_USER
+   VSPHERE_PASSWORD
+   VSPHERE_URL
 ```
 The Makefile will load CONFIG_FILE (static_values.yaml) and .env automatically.
 
