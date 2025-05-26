@@ -6,6 +6,7 @@ import (
 	"certificate-tool/pkg/storage"
 	"context"
 	"fmt"
+	"k8s.io/klog/v2"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -62,18 +63,14 @@ func (tp *TestPlan) Start(ctx context.Context, podImage, pvcYamlPath string) err
 
 		start := time.Now()
 		if err := tc.Run(ctx, podImage, tp.VMImage, pvcYamlPath, tp.StorageVendorProduct); err != nil {
-			tc.Results = utils.TestResult{
+			tc.ResultSummary = utils.TestResult{
 				Success:       false,
 				ElapsedTime:   int64(time.Since(start).Seconds()),
 				FailureReason: err.Error(),
 			}
 			return fmt.Errorf("test %s failed: %w", tc.Name, err)
 		}
-		tc.Results = utils.TestResult{
-			Success:       true,
-			ElapsedTime:   int64(time.Since(start).Seconds()),
-			FailureReason: "",
-		}
+		tc.ResultSummary.ElapsedTime = int64(time.Since(start).Seconds())
 	}
 	return nil
 }
@@ -104,7 +101,7 @@ func (tp *TestPlan) FormatOutput() ([]byte, error) {
 	}
 	storageInfo, err := storage.StorageInfo(c)
 	if err != nil {
-		return nil, err
+		klog.Errorf("failed to get storage info: %v", err)
 	}
 	output.Metadata.Storage.Storage = storageInfo
 	output.Metadata.Storage.StorageVendorProduct = tp.StorageVendorProduct

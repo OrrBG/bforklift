@@ -68,7 +68,7 @@ var createTestCmd = &cobra.Command{
 		}
 		fmt.Print(string(out))
 
-		fmt.Println("cr and pvc created successfully.")
+		fmt.Println("TestPlan completed.")
 	},
 }
 

@@ -1,9 +1,19 @@
 image: fedora-vm:latest
-storageVendorProduct: "primera3par"
+storageVendorProduct: "ontap"
 tests:
   - name: test-1
     success:
       maxTimeSeconds: 300
     vms:
       - namePrefix: testvm1
+        size: 10Gi
+      - namePrefix: testvm2
+        size: 10Gi
+  - name: test-2
+    success:
+      maxTimeSeconds: 300
+    vms:
+      - namePrefix: testvm1
+        size: 10Gi
+      - namePrefix: testvm2
         size: 10Gi

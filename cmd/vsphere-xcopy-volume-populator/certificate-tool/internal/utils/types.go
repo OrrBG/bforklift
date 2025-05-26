@@ -15,6 +15,13 @@ type SuccessCriteria struct {
 // TestResult holds the outcome of a test case.
 type TestResult struct {
 	Success       bool   `yaml:"success"`
-	ElapsedTime   int64  `yaml:"elapsed_time"`
-	FailureReason string `yaml:"failure_reason"`
+	ElapsedTime   int64  `yaml:"elapsedTime"`
+	FailureReason string `yaml:"failureReason"`
+}
+type IndividualTestResult struct {
+	PodName       string `yaml:"name"`
+	Success       bool   `yaml:"success"`
+	ElapsedTime   int64  `yaml:"elapsedTime"`
+	FailureReason string `yaml:"failureReason"`
+	LogLines      string `yaml:"logLines"`
 }

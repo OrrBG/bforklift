@@ -25,22 +25,23 @@ type TestCaseForPrint struct {
 
 // TestCase defines a single test scenario.
 type TestCase struct {
-	Name            string                `yaml:"name"`
-	Success         utils.SuccessCriteria `yaml:"success"`
-	VMs             []*utils.VM           `yaml:"vms"`
-	Results         utils.TestResult      `yaml:"results"`
-	Namespace       string                `yaml:"-"`
-	StorageClass    string                `yaml:"-"`
-	ClientSet       *kubernetes.Clientset `yaml:"-"`
-	VSphereURL      string                `yaml:"-"`
-	VSphereUser     string                `yaml:"-"`
-	VSpherePassword string                `yaml:"-"`
-	Datacenter      string                `yaml:"-"`
-	Datastore       string                `yaml:"-"`
-	ResourcePool    string                `yaml:"-"`
-	VmdkDownloadURL string                `yaml:"-"`
-	LocalVmdkPath   string                `yaml:"-"`
-	IsoPath         string                `yaml:"-"`
+	Name                  string                       `yaml:"name"`
+	Success               utils.SuccessCriteria        `yaml:"success"`
+	VMs                   []*utils.VM                  `yaml:"vms"`
+	IndividualTestResults []utils.IndividualTestResult `yaml:"individualTestResults"`
+	ResultSummary         utils.TestResult             `yaml:"resultsummary"`
+	Namespace             string                       `yaml:"-"`
+	StorageClass          string                       `yaml:"-"`
+	ClientSet             *kubernetes.Clientset        `yaml:"-"`
+	VSphereURL            string                       `yaml:"-"`
+	VSphereUser           string                       `yaml:"-"`
+	VSpherePassword       string                       `yaml:"-"`
+	Datacenter            string                       `yaml:"-"`
+	Datastore             string                       `yaml:"-"`
+	ResourcePool          string                       `yaml:"-"`
+	VmdkDownloadURL       string                       `yaml:"-"`
+	LocalVmdkPath         string                       `yaml:"-"`
+	IsoPath               string                       `yaml:"-"`
 }
 
 // Run provisions per-pod PVCs, VMs, launches populator pods, and waits.
@@ -77,17 +78,35 @@ func (tc *TestCase) Run(ctx context.Context, podImage, vmImage, pvcYamlPath, sto
 	}
 
 	newCtx, _ := context.WithTimeout(ctx, 10*time.Minute)
-	results, totalTime, err := k8s.PollPodsAndCheck(newCtx, tc.ClientSet, tc.Namespace, fmt.Sprintf("test=%s", tc.Name), tc.Success.MaxTimeSeconds, 5*time.Second, time.Duration(tc.Success.MaxTimeSeconds)*time.Second)
+	results, _, err := k8s.PollPodsAndCheck(newCtx, tc.ClientSet, tc.Namespace, fmt.Sprintf("test=%s", tc.Name), tc.Success.MaxTimeSeconds, 5*time.Second, time.Duration(tc.Success.MaxTimeSeconds)*time.Second)
 	if err != nil {
 		return fmt.Errorf("failed polling pods: %w", err)
 	}
+	tc.ResultSummary.Success = true
 	for _, r := range results {
-		tc.Results.Success = r.Success
-		tc.Results.ElapsedTime = int64(totalTime.Seconds())
-		if !r.Success {
-			tc.Results.FailureReason = fmt.Sprintln(results)
+		newTcResult := utils.IndividualTestResult{
+			PodName:     r.PodName,
+			Success:     r.Success,
+			ElapsedTime: int64(r.Duration.Seconds()),
+		}
+		if newTcResult.Success != true {
+			newTcResult.FailureReason = fmt.Sprintf("Err: %s, ExitCode: %d", r.Err, r.ExitCode)
 		}
 
+		tc.IndividualTestResults = append(tc.IndividualTestResults, newTcResult)
+		tc.ResultSummary.Success = tc.ResultSummary.Success && r.Success
+		if !r.Success {
+			tc.ResultSummary.FailureReason = fmt.Sprintf("%s Pod: %s, err: %s; code: %d", tc.ResultSummary.FailureReason, r.PodName, r.Err, r.ExitCode)
+
+			const logLinesToFetch = 10
+			logs, logErr := k8s.GetPodLogs(newCtx, tc.ClientSet, tc.Namespace, r.PodName, logLinesToFetch)
+			if logErr != nil {
+				newTcResult.LogLines = fmt.Sprintf("Failed to get logs: %v", logErr)
+				fmt.Printf("Warning: Could not get logs for pod %s/%s: %v\n", tc.Namespace, r.PodName, logErr) // Log the warning
+			} else {
+				newTcResult.LogLines = logs
+			}
+		}
 	}
 	return nil
 }
