@@ -74,3 +74,4 @@ all: create-vm test-xcopy ## Run all steps in sequence.
 clean: ## Clean built artifacts.
 	@rm -f $(BINARY)
 	@$(KUBECTL) delete namespace $(shell yq e '.test-namespace' $(CONFIG_FILE))
+	./$(BINARY) destroy-vm

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"certificate-tool/internal/utils"
 	"os"
 	"path/filepath"
 
@@ -22,13 +23,16 @@ type Config struct {
 	StorageURL       string `yaml:"storage-url"`
 	StorageClassName string `yaml:"storage-class-name"`
 
-	VspherePassword string `yaml:"vsphere-password"`
-	VsphereUser     string `yaml:"vsphere-user"`
-	VsphereURL      string `yaml:"vsphere-url"`
+	VspherePassword string      `yaml:"vsphere-password"`
+	VsphereUser     string      `yaml:"vsphere-user"`
+	VsphereURL      string      `yaml:"vsphere-url"`
+	VMs             []*utils.VM `yaml:"vms"`
+	Name            string      `yaml:"name"`
 
 	IsoPath                    string `yaml:"iso-path"`
 	DataStore                  string `yaml:"vsphere-datastore"`
 	DataCenter                 string `yaml:"data-center"`
+	WaitTimeout                string `yaml:"wait-timeout"` // Will be parsed to time.Duration
 	Pool                       string `yaml:"vsphere-resource-pool"`
 	DownloadVmdkURL            string `yaml:"download-vmdk-url"`
 	LocalVmdkPath              string `yaml:"local-vmdk-path"`

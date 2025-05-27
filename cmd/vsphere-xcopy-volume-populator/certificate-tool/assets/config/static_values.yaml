@@ -1,7 +1,7 @@
 ## test values
 ### cluster config
 test-namespace: vsphere-populator-test-2
-kubeconfig: "/home/obengali/.kube/config"
+kubeconfig: "/home/obengali/Downloads/kubeconfig(2).yaml"
 secret-name: populator-secret
 pvc-yaml-path: assets/manifests/xcopy-setup/xcopy-pvc.yaml
 test-labels: vsphere-populator
@@ -26,5 +26,6 @@ vsphere-resource-pool: Resources
 ### VM config (New section for VM parameters)
 iso-path: #######
 data-center: #####
+wait-timeout: 10m # e.g., "10m", "1h", "30s"
 download-vmdk-url: "" # Leave empty for default, or provide a URL
 local-vmdk-path: ##### route to a vmdk to be used as base
