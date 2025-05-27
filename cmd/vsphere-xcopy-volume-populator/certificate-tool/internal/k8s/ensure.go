@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -105,23 +104,6 @@ func EnsureRole(clientset *kubernetes.Clientset, role *rbacv1.Role) error {
 	return nil
 }
 
-func EnsureDeployment(clientset *kubernetes.Clientset, namespace string, deploy *appsv1.Deployment) error {
-	existing, err := clientset.AppsV1().Deployments(namespace).Get(context.TODO(), deploy.Name, metav1.GetOptions{})
-	if apierrors.IsNotFound(err) {
-		created, err := clientset.AppsV1().Deployments(namespace).Create(context.TODO(), deploy, metav1.CreateOptions{})
-		if err != nil {
-			return fmt.Errorf("failed to create Deployment %q: %w", deploy.Name, err)
-		}
-		klog.Infof("Deployment %q created", created.Name)
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("failed to get Deployment %q: %w", deploy.Name, err)
-	}
-	klog.Infof("Deployment %q already exists", existing.Name)
-	return nil
-}
-
 func EnsureRoleBinding(clientset *kubernetes.Clientset, binding *rbacv1.RoleBinding) error {
 	_, err := clientset.RbacV1().RoleBindings(binding.Namespace).Get(context.TODO(), binding.Name, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
@@ -172,32 +154,6 @@ func EnsurePersistentVolumeClaim(clientset *kubernetes.Clientset, namespace stri
 	klog.Infof("PVC %q already exists", existing.Name)
 	return nil
 }
-
-//func ensurePVC(ctx context.Context, clientset *kubernetes.Clientset, namespace, pvcName, yamlPath string) error {
-//	data, err := ioutil.ReadFile(yamlPath)
-//	if err != nil {
-//		return fmt.Errorf("read PVC YAML: %w", err)
-//	}
-//	var pvc corev1.PersistentVolumeClaim
-//	if err := yaml.Unmarshal(data, &pvc); err != nil {
-//		return fmt.Errorf("unmarshal PVC: %w", err)
-//	}
-//	pvc.Namespace = namespace
-//	pvc.Name = pvcName
-//	client := clientset.CoreV1().PersistentVolumeClaims(namespace)
-//	_, err = client.Get(ctx, pvcName, metav1.GetOptions{})
-//	if apierrors.IsNotFound(err) {
-//		if _, err := client.Create(ctx, &pvc, metav1.CreateOptions{}); err != nil {
-//			return fmt.Errorf("create PVC: %w", err)
-//		}
-//		klog.Infof("Created PVC %s", pvcName)
-//		return nil
-//	} else if err != nil {
-//		return fmt.Errorf("get PVC: %w", err)
-//	}
-//	klog.Infof("PVC %s exists", pvcName)
-//	return nil
-//}
 
 // EnsurePopulatorPod creates or reapplies a populator Pod mounting its PVC.
 func EnsurePopulatorPod(ctx context.Context, clientset *kubernetes.Clientset, namespace, podName, image, testLabel string, vm utils.VM, storageVendorProduct, pvcName string) error {

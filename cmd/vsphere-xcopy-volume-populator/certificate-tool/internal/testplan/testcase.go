@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/vmware/govmomi/find"
-	//"github.com/vmware/govmomi/govmomi"
 	"github.com/vmware/govmomi/object"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
@@ -91,21 +90,21 @@ func (tc *TestCase) Run(ctx context.Context, podImage, vmImage, pvcYamlPath, sto
 		}
 		if newTcResult.Success != true {
 			newTcResult.FailureReason = fmt.Sprintf("Err: %s, ExitCode: %d", r.Err, r.ExitCode)
+
+			const logLinesToFetch = 10
+			logs, logErr := k8s.GetPodLogs(newCtx, tc.ClientSet, tc.Namespace, r.PodName, logLinesToFetch)
+			if logErr != nil {
+				newTcResult.LogLines = fmt.Sprintf("Failed to get logs: %v", logErr)
+				fmt.Printf("Warning: Could not get logs for pod %s/%s: %v\n", tc.Namespace, r.PodName, logErr)
+			} else {
+				newTcResult.LogLines = logs
+			}
 		}
 
 		tc.IndividualTestResults = append(tc.IndividualTestResults, newTcResult)
 		tc.ResultSummary.Success = tc.ResultSummary.Success && r.Success
 		if !r.Success {
 			tc.ResultSummary.FailureReason = fmt.Sprintf("%s Pod: %s, err: %s; code: %d", tc.ResultSummary.FailureReason, r.PodName, r.Err, r.ExitCode)
-
-			const logLinesToFetch = 10
-			logs, logErr := k8s.GetPodLogs(newCtx, tc.ClientSet, tc.Namespace, r.PodName, logLinesToFetch)
-			if logErr != nil {
-				newTcResult.LogLines = fmt.Sprintf("Failed to get logs: %v", logErr)
-				fmt.Printf("Warning: Could not get logs for pod %s/%s: %v\n", tc.Namespace, r.PodName, logErr) // Log the warning
-			} else {
-				newTcResult.LogLines = logs
-			}
 		}
 	}
 	return nil
@@ -117,7 +116,6 @@ func (tc *TestCase) ensureVMs(ctx context.Context, cli *govmomi.Client, finder *
 	for _, vm := range vms {
 		fullVMName := fmt.Sprintf("%s-%s", testName, vm.NamePrefix)
 
-		// Use the provided downloadVmdkURL, localVmdkPath, and isoPath
 		klog.Infof("Creating VM %s with image %s, VMDK URL: %s, Local VMDK Path: %s, ISO Path: %s", fullVMName, vmImage, downloadVmdkURL, localVmdkPath, isoPath)
 		remoteVmdkPath, err := vmware.CreateVM(
 			fullVMName,
