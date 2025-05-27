@@ -8,29 +8,24 @@ import (
 )
 
 type Config struct {
-	// Cluster config
 	TestNamespace string `yaml:"test-namespace"`
 	Kubeconfig    string `yaml:"kubeconfig"`
 	SecretName    string `yaml:"secret-name"`
 	PvcYamlPath   string `yaml:"pvc-yaml-path"`
 	TestLabels    string `yaml:"test-labels"`
 
-	// Images
 	TestImageLabel     string `yaml:"test-image-label"`
 	TestPopulatorImage string `yaml:"test-populator-image"`
 
-	// Storage
 	StoragePassword  string `yaml:"storage-password"`
 	StorageUser      string `yaml:"storage-user"`
 	StorageURL       string `yaml:"storage-url"`
 	StorageClassName string `yaml:"storage-class-name"`
 
-	// vSphere
 	VspherePassword string `yaml:"vsphere-password"`
 	VsphereUser     string `yaml:"vsphere-user"`
 	VsphereURL      string `yaml:"vsphere-url"`
 
-	// VM specific (add these to the config if you want to centralize VM parameters)
 	VmName                     string `yaml:"vm-name"`
 	IsoPath                    string `yaml:"iso-path"`
 	DataStore                  string `yaml:"data-store"`

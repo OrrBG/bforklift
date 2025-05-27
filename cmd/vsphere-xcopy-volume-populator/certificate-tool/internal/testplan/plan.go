@@ -28,6 +28,7 @@ type TestPlan struct {
 	Datacenter           string                `yaml:"-"`
 	Datastore            string                `yaml:"-"`
 	ResourcePool         string                `yaml:"-"`
+	HostName             string                `yaml:"hostName"`
 	// New fields for VMDK download URL, local VMDK path, and ISO path
 	VmdkDownloadURL string
 	LocalVmdkPath   string
@@ -56,6 +57,7 @@ func (tp *TestPlan) Start(ctx context.Context, podImage, pvcYamlPath string) err
 		tc.Datacenter = tp.Datacenter
 		tc.Datastore = tp.Datastore
 		tc.ResourcePool = tp.ResourcePool
+		tc.HostName = tp.HostName
 		tc.VmdkDownloadURL = tp.VmdkDownloadURL
 		tc.LocalVmdkPath = tp.LocalVmdkPath
 		tc.IsoPath = tp.IsoPath

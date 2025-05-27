@@ -21,6 +21,7 @@ var createVmCmd = &cobra.Command{
 			appConfig.DataCenter,
 			appConfig.DataStore,
 			appConfig.Pool,
+			"",
 			appConfig.DownloadVmdkURL,
 			appConfig.LocalVmdkPath,
 			appConfig.IsoPath,

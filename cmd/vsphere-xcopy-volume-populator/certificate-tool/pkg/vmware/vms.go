@@ -35,6 +35,7 @@ type VMConfig struct {
 	Network     string
 	Pool        string
 	CDDeviceKey string
+	Host        string
 }
 
 // downloadVMDKIfMissing checks for the VMDK locally, downloading it if absent.
@@ -111,6 +112,7 @@ func uploadVmdk(
 	ds *object.Datastore,
 	dc *object.Datacenter,
 	rp *object.ResourcePool,
+	host *object.HostSystem,
 	vmName string,
 	localFilePath string) (string, error) {
 	folders, err := dc.Folders(ctx)
@@ -128,7 +130,7 @@ func uploadVmdk(
 			Datacenter: dc,
 			Pool:       rp,
 			Folder:     folders.VmFolder,
-			Host:       nil,
+			Host:       host,
 			Force:      false,
 			Path:       vmName,
 			Type:       types.VirtualDiskTypeThin,
@@ -142,7 +144,8 @@ func uploadVmdk(
 }
 
 func createVM(ctx context.Context, cli *govmomi.Client,
-	dc *object.Datacenter, rp *object.ResourcePool, vmName, vmdkPath, dsName string) (*object.VirtualMachine, error) {
+	dc *object.Datacenter, rp *object.ResourcePool, host *object.HostSystem, // Add host parameter
+	vmName, vmdkPath, dsName string) (*object.VirtualMachine, error) {
 	vmxPath := fmt.Sprintf("[%s] %s/%s.vmx", dsName, vmName, vmName)
 
 	vmConfig := types.VirtualMachineConfigSpec{
@@ -183,7 +186,7 @@ func createVM(ctx context.Context, cli *govmomi.Client,
 	if err != nil {
 		panic(err)
 	}
-	task, err := folders.VmFolder.CreateVM(ctx, vmConfig, rp, nil)
+	task, err := folders.VmFolder.CreateVM(ctx, vmConfig, rp, host)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +198,6 @@ func createVM(ctx context.Context, cli *govmomi.Client,
 
 	log.Printf("created VM %s...", vmName)
 	return object.NewVirtualMachine(cli.Client, info.Result.(types.ManagedObjectReference)), nil
-
 }
 
 func attachCDROM(ctx context.Context, vm *object.VirtualMachine, isoPath string) error {
@@ -375,13 +377,23 @@ func attachNetwork(
 }
 
 func CreateVM(vmName, vsphereUrl, vsphereUser, vspherePassword, dataCenter,
-	dataStore, pool, downloadVmdkURL, localVmdkPath, isoPath string, waitTimeout time.Duration) (string, error) {
+	dataStore, pool, hostName, downloadVmdkURL, localVmdkPath, isoPath string, waitTimeout time.Duration) (string, error) { // Add hostName parameter
 	ctx, cancel, client, finder, dc, ds, rp, err := SetupVSphere(
 		5*time.Minute, vsphereUrl, vsphereUser, vspherePassword, dataCenter, dataStore, pool)
 	if err != nil {
 		log.Fatalf("vSphere setup failed: %v", err)
 	}
 	defer cancel()
+
+	var host *object.HostSystem
+	if hostName != "" {
+		host, err = finder.HostSystem(ctx, hostName)
+		if err != nil {
+			return "", fmt.Errorf("failed to find host %q: %w", hostName, err)
+		}
+		klog.Infof("Using host: %s", host.Name())
+	}
+
 	vm, err := finder.VirtualMachine(context.Background(), vmName)
 	if err != nil {
 		if _, ok := err.(*find.NotFoundError); !ok {
@@ -401,7 +413,7 @@ func CreateVM(vmName, vsphereUrl, vsphereUser, vspherePassword, dataCenter,
 		return "", err
 	}
 	fmt.Printf("\nvmdk to upload %s\n", vmdkToUpload)
-	remoteVmdkPath, err := uploadVmdk(ctx, client, ds, dc, rp, vmName, vmdkToUpload)
+	remoteVmdkPath, err := uploadVmdk(ctx, client, ds, dc, rp, host, vmName, vmdkToUpload)
 	if err != nil {
 		return "", err
 	}
@@ -410,7 +422,7 @@ func CreateVM(vmName, vsphereUrl, vsphereUser, vspherePassword, dataCenter,
 	if err != nil {
 		return "", err
 	}
-	vm, err = createVM(ctx, client, dc, rp, vmName, remoteVmdkPath, ds.Name())
+	vm, err = createVM(ctx, client, dc, rp, host, vmName, remoteVmdkPath, ds.Name())
 	if err != nil {
 		return "", err
 	}
@@ -420,18 +432,10 @@ func CreateVM(vmName, vsphereUrl, vsphereUser, vspherePassword, dataCenter,
 	if err := attachNetwork(ctx, client, vm, "VM Network"); err != nil {
 		log.Fatalf("add NIC: %v", err)
 	}
-	//>>>>>>>>>>>>>>>>>>>>>>VM must be shut down for some reason<<<<<<<<<<<<<<<<<<<<<<<
-	//if err := powerOn(ctx, vm); err != nil {
-	//	return err
-	//}
 
 	if err := waitForVMRegistration(ctx, finder, vmName, waitTimeout); err != nil {
 		return "", err
 	}
-	//>>>>>>>>>>>>>>>>>>>>>>This step doesnt work until manual log in to the new vm (idk why)<<<<<<<<<<<<<<<<<<<<<<<
-	//if err := writeRandomDataToGuest(ctx, client, finder, vmName, guestUser, guestPass, dataSizeMB); err != nil {
-	//	return err
-	//}
 
 	klog.Infof("VM %s is ready.", vmName)
 	return remoteVmdkPath, nil

@@ -6,11 +6,8 @@ import (
 	"certificate-tool/pkg/vmware"
 	"context"
 	"fmt"
-	"github.com/vmware/govmomi"
 	"time"
 
-	"github.com/vmware/govmomi/find"
-	"github.com/vmware/govmomi/object"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 )
@@ -38,6 +35,7 @@ type TestCase struct {
 	Datacenter            string                       `yaml:"-"`
 	Datastore             string                       `yaml:"-"`
 	ResourcePool          string                       `yaml:"-"`
+	HostName              string                       `yaml:"-"`
 	VmdkDownloadURL       string                       `yaml:"-"`
 	LocalVmdkPath         string                       `yaml:"-"`
 	IsoPath               string                       `yaml:"-"`
@@ -45,7 +43,7 @@ type TestCase struct {
 
 // Run provisions per-pod PVCs, VMs, launches populator pods, and waits.
 func (tc *TestCase) Run(ctx context.Context, podImage, vmImage, pvcYamlPath, storageVendorProduct string) error {
-	vSphereCtx, cancel, client, finder, dc, ds, rp, err := vmware.SetupVSphere(
+	_, cancel, _, _, _, _, _, err := vmware.SetupVSphere(
 		10*time.Minute,
 		tc.VSphereURL,
 		tc.VSphereUser,
@@ -59,8 +57,7 @@ func (tc *TestCase) Run(ctx context.Context, podImage, vmImage, pvcYamlPath, sto
 	}
 	defer cancel()
 
-	// Pass the new VMDK and ISO paths to ensureVMs
-	if err := tc.ensureVMs(vSphereCtx, client, finder, dc, ds, rp, tc.Name, vmImage, tc.VMs, tc.VmdkDownloadURL, tc.LocalVmdkPath, tc.IsoPath); err != nil {
+	if err := tc.ensureVMs(tc.Name, vmImage, tc.VMs, tc.VmdkDownloadURL, tc.LocalVmdkPath, tc.IsoPath); err != nil {
 		return fmt.Errorf("VM setup failed: %w", err)
 	}
 
@@ -111,7 +108,7 @@ func (tc *TestCase) Run(ctx context.Context, podImage, vmImage, pvcYamlPath, sto
 }
 
 // ensureVMs creates VMs and sets their VMDK paths.
-func (tc *TestCase) ensureVMs(ctx context.Context, cli *govmomi.Client, finder *find.Finder, dc *object.Datacenter, ds *object.Datastore, rp *object.ResourcePool, testName, vmImage string, vms []*utils.VM, downloadVmdkURL, localVmdkPath, isoPath string) error {
+func (tc *TestCase) ensureVMs(testName, vmImage string, vms []*utils.VM, downloadVmdkURL, localVmdkPath, isoPath string) error {
 	klog.Infof("Ensuring VMs for test %s", testName)
 	for _, vm := range vms {
 		fullVMName := fmt.Sprintf("%s-%s", testName, vm.NamePrefix)
@@ -125,6 +122,7 @@ func (tc *TestCase) ensureVMs(ctx context.Context, cli *govmomi.Client, finder *
 			tc.Datacenter,
 			tc.Datastore,
 			tc.ResourcePool,
+			tc.HostName,
 			downloadVmdkURL,
 			localVmdkPath,
 			isoPath,
