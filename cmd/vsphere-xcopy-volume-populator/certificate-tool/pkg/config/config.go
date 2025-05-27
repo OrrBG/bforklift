@@ -20,7 +20,6 @@ type Config struct {
 	TestPopulatorImage string `yaml:"test-populator-image"`
 
 	// Storage
-	StorageVendor    string `yaml:"storage-vendor"`
 	StoragePassword  string `yaml:"storage-password"`
 	StorageUser      string `yaml:"storage-user"`
 	StorageURL       string `yaml:"storage-url"`

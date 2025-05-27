@@ -28,7 +28,7 @@ var prepare = &cobra.Command{
 		if err := k8s.EnsureNamespace(clientset, appConfig.TestNamespace); err != nil {
 			panic(err)
 		}
-		saName := "populator" // These seem to be fixed based on your original code
+		saName := "populator"
 		roleName := "populator"
 
 		if err := k8s.EnsureServiceAccount(clientset, appConfig.TestNamespace, saName); err != nil {
@@ -63,7 +63,6 @@ var prepare = &cobra.Command{
 			panic(err)
 		}
 
-		// This EnsureRole call is also a duplicate of the one above.
 		if err := k8s.EnsureRole(clientset, populatorRole); err != nil {
 			panic(err)
 		}

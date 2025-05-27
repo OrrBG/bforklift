@@ -99,7 +99,7 @@ func (p *RemoteEsxcliPopulator) Populate(sourceVMDKFile string, volumeHandle str
 		driver, hasDriver := a["Driver"]
 		// 'esxcli storage core adapter list' returns LinkState field
 		// 'esxcli iscsi adapater list' returns State field
-		linkState, hasLink := a["State"]
+		linkState, hasLink := a["LinkState"]
 		uid, hasUID := a["UID"]
 
 		if !hasDriver || !hasLink || !hasUID || len(driver) == 0 || len(linkState) == 0 || len(uid) == 0 {

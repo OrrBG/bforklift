@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	planYamlPath string // This remains as it's the second parameter
+	planYamlPath string
 )
 
 var createTestCmd = &cobra.Command{
