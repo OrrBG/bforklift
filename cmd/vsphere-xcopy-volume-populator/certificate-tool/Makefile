@@ -31,9 +31,8 @@ KUBECTL ?= /usr/bin/kubectl
 # $(foreach var,$(REQUIRED_VARS),\
 #   $(if $(value $(var)),,$(error Environment variable $(var) is required)))
 
-# VM_NAME and DATA_STORE can also be read from config, or kept for Makefile specific overrides
-VM_NAME ?= $(shell yq e '.vm-name' $(CONFIG_FILE))
-DATA_STORE ?= $(shell yq e '.data-store' $(CONFIG_FILE))
+# DATA_STORE can also be read from config, or kept for Makefile specific overrides
+DATA_STORE ?= $(shell yq e '.vsphere-datastore' $(CONFIG_FILE))
 BINARY = certificate-tool
 VMDK_PATH ?= $(shell yq e '.local-vmdk-path' $(CONFIG_FILE)) # Read from config if it's there
 .PHONY: help build prepare test-xcopy all clean create-vm destroy-vm

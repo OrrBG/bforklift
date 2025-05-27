@@ -1,20 +1,30 @@
 ## test values
 ### cluster config
-test-namespace: vsphere-populator-test
-kubeconfig: "/home/bodnopoz/work/kubeconfig3par.yaml"
+test-namespace: vsphere-populator-test-2
+kubeconfig: "/home/obengali/.kube/config"
 secret-name: populator-secret
-controller-path: assets/manifests/xcopy-setup/controller.yaml
+pvc-yaml-path: assets/manifests/xcopy-setup/xcopy-pvc.yaml
 test-labels: vsphere-populator
 ### images
 test-image-label:  devel
-test-populator-image: quay.io/kubev2v/vsphere-xcopy-volume-populator
+test-populator-image: #######
 ### storage
-storage-vendor: ####
-storage-password: #####
-storage-user: ####
-storage-url: ###
+storage-password: ####
+storage-user: #######
+storage-url: #######
+storage-class-name: ########
+storage-skip-ssl-verification: "true"
+
 ### vsphere
-vsphere-password: #####
-vsphere-user: ####
-vsphere-url: ####
-storage-class-name: ####
+vsphere-password: #########
+vsphere-user: ########
+vsphere-url: #########
+vsphere-datacenter: #########
+vsphere-datastore: ##########
+vsphere-resource-pool: Resources
+
+### VM config (New section for VM parameters)
+iso-path: #######
+data-center: #####
+download-vmdk-url: "" # Leave empty for default, or provide a URL
+local-vmdk-path: ##### route to a vmdk to be used as base

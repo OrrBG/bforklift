@@ -26,20 +26,10 @@ type Config struct {
 	VsphereUser     string `yaml:"vsphere-user"`
 	VsphereURL      string `yaml:"vsphere-url"`
 
-	VmName                     string `yaml:"vm-name"`
 	IsoPath                    string `yaml:"iso-path"`
-	DataStore                  string `yaml:"data-store"`
-	GuestID                    string `yaml:"guest-id"`
+	DataStore                  string `yaml:"vsphere-datastore"`
 	DataCenter                 string `yaml:"data-center"`
-	MemoryMB                   int    `yaml:"memory-mb"`
-	CPUs                       int    `yaml:"cpus"`
-	Network                    string `yaml:"network"`
-	Pool                       string `yaml:"pool"`
-	CDDeviceKey                string `yaml:"cd-device-key"`
-	GuestUser                  string `yaml:"guest-user"`
-	GuestPass                  string `yaml:"guest-pass"`
-	DataSizeMB                 int    `yaml:"data-size-mb"`
-	WaitTimeout                string `yaml:"wait-timeout"` // Will be parsed to time.Duration
+	Pool                       string `yaml:"vsphere-resource-pool"`
 	DownloadVmdkURL            string `yaml:"download-vmdk-url"`
 	LocalVmdkPath              string `yaml:"local-vmdk-path"`
 	StorageSkipSSLVerification string `yaml:"storage-skip-ssl-verification"`

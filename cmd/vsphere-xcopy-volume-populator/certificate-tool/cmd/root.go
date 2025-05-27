@@ -30,9 +30,7 @@ func init() {
 
 	RootCmd.AddCommand(
 		prepare,
-		createVmCmd,
 		createTestCmd,
-		destroyVMCmd, // Add destroyVMCmd to RootCmd
 	)
 
 	// New persistent flag for the configuration file
