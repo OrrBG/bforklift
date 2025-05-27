@@ -3,6 +3,7 @@ package cmd
 import (
 	"certificate-tool/internal/k8s"
 	"k8s.io/klog/v2"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
@@ -67,6 +68,7 @@ var prepare = &cobra.Command{
 			panic(err)
 		}
 		klog.Infof("Ensuring secret...")
+
 		Secret := k8s.NewPopulatorSecret(
 			appConfig.TestNamespace,
 			appConfig.StorageSkipSSLVerification,
@@ -75,7 +77,7 @@ var prepare = &cobra.Command{
 			appConfig.StorageURL,
 			appConfig.VspherePassword,
 			appConfig.VsphereUser,
-			appConfig.VsphereURL,
+			stripHTTP(appConfig.VsphereURL),
 			appConfig.SecretName,
 		)
 		if err := k8s.EnsureSecret(clientset, Secret); err != nil {
@@ -83,6 +85,16 @@ var prepare = &cobra.Command{
 		}
 		klog.Infof("Environment created successfully.")
 	},
+}
+
+func stripHTTP(url string) string {
+	if strings.HasPrefix(url, "https://") {
+		return url[8:]
+	}
+	if strings.HasPrefix(url, "http://") {
+		return url[7:]
+	}
+	return url
 }
 
 func init() {
